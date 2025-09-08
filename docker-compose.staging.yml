@@ -1,0 +1,49 @@
+version: '3.9'
+
+services:
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6380:6380" #both numbers must match port in command below AND REDIS_PORT cheapotle service variable
+    command: redis-server --port 6380
+
+  mongostag:
+    image: mongo:5.0.6
+    restart: unless-stopped
+    command: mongod --port 27018
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 123456
+      MONGO_INITDB_DATABASE: cylimit
+    ports:
+      - 27018:27018
+    volumes:
+      - mongo-db-staging:/data/db
+
+  cylimit-api-staging:
+    image: 250828633224.dkr.ecr.ap-southeast-1.amazonaws.com/cylimit:staging
+    depends_on:
+      - mongostag
+    container_name: "api-staging"
+    env_file:
+      - ./.env.staging
+    environment:
+        - PORT=4009
+        - BASE_URL=https://api-staging.cylimit.com/v1
+        - MONGODB_USER=root
+        - MONGODB_PASSWORD=123456
+        - MONGODB_DATABASE=cylimit
+        - MONGODB_PORT=27018
+        - MONGODB_HOST=mongostag
+        - REDIS_HOST=redis
+        - REDIS_PORT=6380
+        - REDIS_PASSWORD=123456
+        - CLIENT_BASE_URL=https://cylimit.vercel.app
+        - CLIENT_VERIFY_URL=https://cylimit.vercel.app/email-verified
+        - CLIENT_FORGOT_PASSWORD_URL=https://cylimit.vercel.app/reset-password
+    restart: on-failure
+    ports:
+      - 4009:4009
+
+volumes:
+  mongo-db-staging:
