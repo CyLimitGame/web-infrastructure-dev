@@ -272,65 +272,100 @@ Donc avec Premium :
 
 ## 💰 Système de Fees
 
-### Phase Actuelle (Lancement)
+### ⚠️ IMPORTANT : Système Actuel vs Nouveau Système
+
+**Système ACTUEL sur le site (à migrer) :**
+```javascript
+// Appliqué aux DEUX parties (acheteur + vendeur)
+fees = max(0.05 USDC, 0.05% du prix)
+
+Exemples :
+- NFT à 100 USDC : max(0.05, 0.05) = 0.05 USDC (chacun)
+- NFT à 1000 USDC : max(0.05, 0.5) = 0.5 USDC (chacun)
+```
+
+---
+
+### Phase 1 : Nouveau Système (Lancement - Semaine 8)
+
+**Objectif :** Faire porter les fees UNIQUEMENT au vendeur
 
 **Configuration :**
 
 ```env
-# .env
+# .env - Phase 1
 BUYER_FEE_PERCENT=0          # 0% acheteur
-SELLER_FEE_PERCENT=0         # 0% vendeur (% désactivé)
-SELLER_FEE_FLAT=0.05         # 0.05 USDC flat toujours
+SELLER_FEE_PERCENT=0.05      # 0.05% vendeur
+SELLER_FEE_FLAT=0.05         # 0.05 USDC minimum
 STRIPE_BUYER_FEE_PERCENT=25  # 25% si Stripe
 STRIPE_BUYER_FEE_MIN=0.35    # Minimum 0.35 USDC si Stripe
 ```
 
-**Exemples (Phase Actuelle) :**
+**Formule Vendeur (Phase 1) :**
+
+```javascript
+sellerFee = max(0.05 USDC, prix × 0.05%)
+
+Exemples :
+- NFT à 100 USDC : max(0.05, 0.05) = 0.05 USDC
+- NFT à 1000 USDC : max(0.05, 0.5) = 0.5 USDC
+- NFT à 10000 USDC : max(0.05, 5) = 5 USDC
+```
+
+**Exemples (Phase 1) :**
 
 | NFT Prix | Méthode Paiement | Fee Acheteur | Fee Vendeur | Total Acheteur | Reçu Vendeur |
 |----------|------------------|--------------|-------------|----------------|--------------|
 | 1 USDC   | USDC Wallet      | 0            | 0.05        | **1 USDC**     | 0.95 USDC    |
 | 1 USDC   | Coinbase CB      | 0.035 (CB)   | 0.05        | **1.035 USDC** | 0.95 USDC    |
 | 1 USDC   | Stripe CB        | 0.35 (min)   | 0.05        | **1.35 USDC**  | 0.95 USDC    |
-| 10 USDC  | USDC Wallet      | 0            | 0.05        | **10 USDC**    | 9.95 USDC    |
-| 10 USDC  | Coinbase CB      | 0.35 (CB)    | 0.05        | **10.35 USDC** | 9.95 USDC    |
-| 10 USDC  | Stripe CB        | 2.5 (25%)    | 0.05        | **12.5 USDC**  | 9.95 USDC    |
-| 50 USDC  | USDC Wallet      | 0            | 0.05        | **50 USDC**    | 49.95 USDC   |
-| 50 USDC  | Coinbase CB      | 1.75 (CB)    | 0.05        | **51.75 USDC** | 49.95 USDC   |
-| 50 USDC  | Stripe CB        | 12.5 (25%)   | 0.05        | **62.5 USDC**  | 49.95 USDC   |
+| 100 USDC | USDC Wallet      | 0            | 0.05        | **100 USDC**   | 99.95 USDC   |
+| 100 USDC | Coinbase CB      | 3.5 (CB)     | 0.05        | **103.5 USDC** | 99.95 USDC   |
+| 100 USDC | Stripe CB        | 25 (25%)     | 0.05        | **125 USDC**   | 99.95 USDC   |
+| 1000 USDC| USDC Wallet      | 0            | 0.5         | **1000 USDC**  | 999.5 USDC   |
+| 1000 USDC| Coinbase CB      | 35 (CB)      | 0.5         | **1035 USDC**  | 999.5 USDC   |
+| 1000 USDC| Stripe CB        | 250 (25%)    | 0.5         | **1250 USDC**  | 999.5 USDC   |
+
+**🎯 Action requise :** Dès que le nouveau système est en place, modifier le site actuel pour appliquer ces fees.
 
 ---
 
-### Phase Future (Avec Abonnements)
+### Phase 2 : Avec Abonnements Premium (Semaine 16+)
+
+**Objectif :** Augmenter les fees et proposer Premium pour les annuler
 
 **Configuration :**
 
 ```env
-# .env (après lancement abonnements)
+# .env - Phase 2 (après lancement abonnements)
 BUYER_FEE_PERCENT=5          # 5% acheteur (si pas Premium)
 SELLER_FEE_PERCENT=5         # 5% vendeur (si pas Premium)
-SELLER_FEE_MIN=0.05          # Minimum 0.05 USDC
+SELLER_FEE_FLAT=0.05         # Minimum 0.05 USDC
 STRIPE_BUYER_FEE_PERCENT=25  # 25% si Stripe (toujours)
 STRIPE_BUYER_FEE_MIN=0.35    # Minimum 0.35 USDC si Stripe
 ```
 
-**Formule Vendeur (Future) :**
+**Formule Vendeur (Phase 2) :**
 
-```
-sellerFee = max(0.05 USDC, prix × 5%)
+```javascript
+sellerFee = max(0.05 USDC, prix × 5%)  // ⚠️ 5% au lieu de 0.05%
 
 Exemples :
 - NFT à 0.5 USDC : max(0.05, 0.025) = 0.05 USDC
 - NFT à 1 USDC : max(0.05, 0.05) = 0.05 USDC
 - NFT à 2 USDC : max(0.05, 0.10) = 0.10 USDC
 - NFT à 10 USDC : max(0.05, 0.50) = 0.50 USDC
+- NFT à 100 USDC : max(0.05, 5) = 5 USDC
 ```
 
-**Formule Acheteur (Future) :**
+**Formule Acheteur (Phase 2) :**
 
-```
-USDC/Coinbase : 5% (si pas Premium)
-Stripe : 25% (toujours, même avec Premium)
+```javascript
+buyerFee = prix × 5%  // Si pas Premium
+
+Exemples :
+- NFT à 10 USDC : 0.5 USDC
+- NFT à 100 USDC : 5 USDC
 ```
 
 ---
