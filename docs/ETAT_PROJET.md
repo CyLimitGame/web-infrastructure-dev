@@ -11,563 +11,687 @@ Point de référence unique pour comprendre où en est le projet à tout moment
 **COMMENT :**
 Consulter ce fichier AVANT toute nouvelle tâche. Mettre à jour APRÈS chaque tâche terminée.
 
-**DERNIÈRE MISE À JOUR :** 5 Novembre 2025 - 16h45
+**DERNIÈRE MISE À JOUR :** 6 Novembre 2025 - 12h00
 
 **STATUT :** Actif - Mis à jour régulièrement
 
 ---
 
-## 🎯 Vue d'Ensemble
+## 🎯 VUE D'ENSEMBLE
 
-### Contexte
+### Concept
 
-CyLimit est une plateforme de jeu fantasy cyclisme basée sur des cartes NFT. Le projet est en production avec ~200 utilisateurs actifs par jour.
+**CyLimit** est une plateforme de **jeu fantasy cyclisme** basée sur des **cartes NFT** où les utilisateurs :
+- Collectionnent des cartes de coureurs cyclistes (NFTs)
+- Créent des équipes pour des courses réelles
+- Gagnent des points basés sur les performances réelles
+- Remportent des récompenses en USDC, XP et NFTs
 
-### Stack Technique Actuel
+### Métriques Clés
 
-- **Frontend :** Next.js 12.3.1 + React 18 + Chakra UI
-- **Backend User :** NestJS 9 + MongoDB + Redis
-- **Backend Admin :** NestJS 9 (séparé)
-- **Base de données :** MongoDB Atlas
-- **Blockchain :** Polygon Mainnet (NFTs ERC-721)
-- **Infrastructure :** AWS (en cours de migration)
+- **Utilisateurs actifs :** ~200/jour
+- **Utilisateurs totaux :** ~6,000
+- **Games actifs/mois :** ~30-40 (Grands Tours, Monuments, Classiques)
+- **Équipes créées/mois :** ~1,000-1,500
+- **Taux participation :** ~60%
+- **USDC distribué/mois :** ~500-800 USDC en récompenses
 
 ---
 
-## ✅ CE QUI FONCTIONNE (Production)
+## 🛠️ STACK TECHNIQUE
 
 ### Frontend
-- ✅ Application Next.js déployée et fonctionnelle
-- ✅ Authentification users (email/password, Google, Facebook)
-- ✅ Marketplace NFT (achat/vente)
-- ✅ Système de jeu fantasy
-- ✅ Profils utilisateurs
-- ✅ Internationalisation (FR/EN)
+- **Framework :** Next.js 12.3.1 (React 18.2.0)
+- **UI Library :** Chakra UI 2.2.1
+- **State Management :** Redux Toolkit 1.8.0
+- **API Client :** Axios 0.26.0 + React Query
+- **Blockchain SDK :** Coinbase CDP Hooks 0.0.51
+- **Internationalisation :** next-i18next
+- **Tests E2E :** Playwright
 
-### Backend User
-- ✅ API REST complète (auth, NFT, games, users)
-- ✅ GraphQL API
-- ✅ Gestion NFTs et marketplace
-- ✅ Système de scoring multi-rôles
-- ✅ Intégration Stripe pour paiements
-- ✅ Système de rewards
-- ✅ NOUVEAU : MarketplaceService complet avec gestion d'expiration des listings
-  - listNFT (DB uniquement, $0 gas)
-  - delistNFT (annulation listing)
-  - expiresAt : listings expirent automatiquement (J+2 à J+30)
-  - Cron job quotidien pour expirer listings automatiquement
-  - marketType comme source de vérité unique ('owner', 'fixed', 'auction', 'swap')
-- ✅ **NOUVEAU (3 Nov 2025) :** Filtrage marché secondaire adapté aux listings
-  - NftRepository utilise aggregation MongoDB pour joindre collection 'listings'
-  - Filtre automatique sur status='active' et expiresAt > now pour marketType=FIXED
-  - Les cartes en vente apparaissent correctement sur `/market?marketType=fixed`
-  - Support filtre de prix sur listing.price (au lieu de fixedPrice obsolète)
+### Backend User (Port 4000)
+- **Framework :** NestJS 9.1.4
+- **Base de données :** MongoDB 6.6.5 (Mongoose)
+- **Cache :** Redis (via @liaoliaots/nestjs-redis 9.0.3)
+- **Auth :** Passport JWT + bcrypt
+- **API :** REST + GraphQL (Apollo)
+- **Email :** Nodemailer (SMTP)
+- **Jobs :** Bull Queue
 
-### Backend Admin
-- ✅ Backend admin séparé (port 3001)
-- ✅ Gestion administrative NFTs
-- ✅ Cron jobs (calculs, syncs)
-- ✅ Monitoring
-- ✅ **NOUVEAU (4 Nov 2025 23h) :** Script de transfert USDC admin
-  - Script `transfer-usdc-to-user.cjs` pour transférer USDC Master Wallet → Embedded Wallet user
-  - Validation utilisateur et vérification balance automatique
-  - Logging automatique dans address_activities (type: ADMIN_TRANSFER)
-  - Affichage lien explorer pour tracking transaction
-  - Documentation complète dans scripts/wallet/README.md
+### Backend Admin (Port 3001)
+- **Framework :** NestJS 9.1.4 (séparé du User Backend)
+- **Base de données :** MongoDB (même instance)
+- **Blockchain SDK :** Coinbase CDP SDK 1.38.4
+- **Cron Jobs :** @nestjs/schedule
+- **Rôle :** Calculs scores, sync ProCyclingStats, opérations admin, donner les rewards, créer les games, mettre en vente les packs et cartes
 
 ### Blockchain
-- ✅ NFTs ERC-721 déployés sur Polygon Mainnet
-- ✅ Smart contracts fonctionnels
-- ✅ Intégration Thirdweb SDK
+- **Réseau Principal :** Base Mainnet (ChainID 8453)
+- **Réseau Test :** Base Sepolia (ChainID 84532)
+- **Anciens NFTs :** Polygon Mainnet (en migration vers Base)
+- **Nouveaux NFTs :** Base (ERC-721)
+- **Marketplace :** Base (contrat custom)
+- **USDC :** Base (natif - Circle)
+- **Wallets Users :** Coinbase Embedded Wallets (Smart Accounts ERC-4337)
+- **Wallet Admin :** Coinbase CDP Server Wallet v2
+- **Gas Sponsorship :** CDP Paymaster (Base)
+
+### Infrastructure
+- **Hébergement :** AWS (⏳ migration vers Google Cloud Run planifiée)
+- **Storage Images NFT :** 
+  - ✅ AWS S3 (`cylimit-public` - bucket existant, Europe eu-west-3)
+  - 🔄 Pinata IPFS (migration en cours pour décentralisation)
+  - 🔄 Google Cloud Storage (migration en cours pour performance)
+- **Base de Données :** MongoDB Atlas (production)
+- **CDN :** Direct S3 (pas CloudFront configuré actuellement)
+
+### Services Externes
+- **ProCyclingStats :** Données courses et coureurs (API partenaire)
+- **Coinbase CDP :** Wallets + Gas sponsorship
+- **Stripe :** Paiements fiat (CB)
+- **Google/Facebook OAuth :** Social login
+
+### Contrats Déployés
+
+**Base Sepolia (Testnet - Développement) :**
+- NFT Contract : `0x8e78d54097FDDEc48a959c015f5b49E2A97B779A`
+- Marketplace : `0xA99c44fE605ABdb86c92394a9f7A2Da84da35786`
+- USDC : `0x036CbD53842c5426634e7929541eC2318f3dCF7e`
+- Master Smart Account : `0x9f682058A2Bdc8Fb5CE5269B414fEd9e85a6D896`
+
+**Polygon Mainnet (Anciens NFTs - En Migration) :**
+- Old NFT Contract : `0x28b53123d2C5fFc3aeAc39bd7f05cCDE97b319b3`
+- Old Master Wallet : `0x7958981c5B01D225CFDD718E4DA14Ac429199c86`
+
+**Base Mainnet (Production - À Déployer) :**
+- NFT Contract : ⏳ À déployer
+- Marketplace : ⏳ À déployer
+- USDC : `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` (natif Base)
 
 ---
 
-## 🔄 EN COURS DE DÉVELOPPEMENT
+## ✅ FONCTIONNALITÉS ACTUELLES
 
-### ✅ Embedded Wallet Coinbase + Marketplace (5 Nov 2025)
+### 🔐 1. AUTHENTIFICATION & COMPTE
 
-**Statut :** 🎉 FONCTIONNEL - Achats/Ventes opérationnels !
+**Statut :** ✅ Fonctionnel en production
 
-**Ce qui est fait :**
-- ✅ SDK Coinbase installé et configuré
-- ✅ Tests Playwright créés
-- ✅ Vérification wallet obligatoire pour achat/vente NFT
-- ✅ **NOUVEAU (5 Nov 2025 - 16h45) :** Marketplace COMPLÈTEMENT FONCTIONNEL
-  - Nouveau Marketplace déployé : `0xA99c44fE605ABdb86c92394a9f7A2Da84da35786`
-  - Marketplace whitelisté dans NFT contract via Smart Account CDP
-  - Configuration `.env` corrigée (backend charge `.env.local` automatiquement)
-  - Fees transférées vers Smart Account au lieu de EOA
-  - Approval Marketplace avec attente confirmation on-chain
-  - Toast succès personnalisé
-  - ownerId correctement enregistré comme ObjectId en DB
-  - **Premier achat NFT testé et validé avec succès ! 🎉**
-- ✅ **NOUVEAU (4 Nov 2025) :** Vérification wallet obligatoire pour la vente NFT
-  - SellCardForm vérifie maintenant l'existence du wallet avant de soumettre
-  - Affiche WalletRequiredModal si pas de wallet (bloquant)
-  - Guide user vers création wallet avec WalletAuthModal
-  - Relance automatiquement le flow de vente après création wallet
-  - Double sécurité : frontend (UX) + backend (vérification baseWalletAddress)
-- ✅ **NOUVEAU (4 Nov 2025 22h) :** Système complet de gestion solde USDC
-  - BalancePayment utilise maintenant balanceUSDC on-chain via useEmbeddedWallet
-  - Correction cache : refreshBalance force le fetch avec forceRefresh=true
-  - Alert rouge + message d'erreur si solde insuffisant lors de l'achat
-  - Bouton "Ajouter des fonds" ouvre WalletAuthModal (nouveau système avec Onramp)
-  - Affichage solde USDC réel (0.10$ au lieu de 0$ grâce au cache bypass)
-- ✅ **NOUVEAU (4 Nov 2025 22h) :** Modal vente redesigné (inspiré Sorare)
-  - Input prix déplacé dans ConfirmModal (au lieu de SellCardForm)
-  - Affichage dynamique des frais : max(0.05€, 0.05% du prix)
-  - Configuration backend centralisée (marketplace.config.ts)
-  - Endpoint GET /marketplace/config pour exposition frontend
-  - Composant AvgCapScoreAndBonus réutilisé pour affichage carte
-  - Calendrier pour sélection date expiration (J+2 à J+30)
-  - Bouton unique "Mettre en vente" / "List on the market"
-- ✅ **NOUVEAU (4 Nov 2025 23h) :** Logging automatique migrations et transferts USDC
-  - Service MigrationService modifié pour logger dans address_activities
-  - Logging USDC : type MIGRATION_USDC avec txHash, montant, adresses
-  - Logging NFT : type MIGRATION_NFT_BATCH avec tokenIds, txHash, adresses  
-  - Injection AddressActivityService dans UserModule
-  - Traçabilité complète de toutes les opérations USDC/NFT
-  - Documentation dans LOGGING_ACTIVITES_MIGRATION.md
+**Ce qui fonctionne :**
+- ✅ Inscription email/password avec vérification email (OTP)
+- ✅ Connexion email/password (JWT, sessions 30 jours)
+- ✅ Social login (Google OAuth, Facebook OAuth)
+- ✅ Reset password par email
+- ✅ Gestion profil utilisateur
+- ✅ Admin auth séparé (rôles ADMIN, SUPER_ADMIN)
+
+**Détails techniques :**
+- Auth custom JWT + Passport.js
+- Tokens stockés localStorage (`TOKEN`)
+- Vérification email obligatoire
+- **Magic Link** : Lien de vérification envoyé par email (code OTP intégré dans URL, expiration 30min)
+- Voir [CONTEXT_AUTH.md](./context/CONTEXT_AUTH.md)
+
+**Prochaine évolution :**
+- ⏳ Migration Firebase Auth (OTP SMS, 2FA mobile)
+
+---
+
+### 💳 2. EMBEDDED WALLET COINBASE
+
+**Statut :** 🎉 Fonctionnel - Achats/Ventes opérationnels !
+
+**Ce qui fonctionne :**
+- ✅ Création automatique Embedded Wallet (Email ou SMS)
+- ✅ Smart Account (ERC-4337) pour chaque utilisateur
+- ✅ Balance USDC visible en lecture seule
+- ✅ Double authentification (Email + SMS backup)
+- ✅ Reconnexion automatique (sessions 7 jours)
+- ✅ Gas sponsorisé ($0 pour utilisateurs)
+- ✅ Batch transactions (USDC + NFT en 1 signature)
+- ✅ Migration automatique anciens wallets → Embedded Wallets
+- ✅ **NOUVEAU (6 Nov 2025) :** WalletContext centralisé (-75% appels API)
+
+**Détails techniques :**
+- Coinbase CDP Hooks 0.0.51
+- Smart Accounts sur Base Sepolia/Mainnet
+- CDP Paymaster pour gas sponsorship
+- **Documentation Coinbase :** Utiliser `mcp_Coinbase_Developer_SearchCoinbaseDeveloper` pour vérifier APIs/limites
+- Voir [CONTEXT_MARKETPLACE-WALLET.md](./context/CONTEXT_MARKETPLACE-WALLET.md)
 
 **Ce qui reste :**
-- 🔄 Corriger flow d'inscription dans les tests (en cours)
-- ⏳ Finaliser intégration wallet dans le frontend (autres actions)
-- ⏳ Tests end-to-end complets
+- ⏳ Tests E2E complets (Playwright)
+- ⏳ Déploiement production Base Mainnet
 
-**Documents  :**
-- [tests/PLAN_TEST_EMBEDDED_WALLET.md](./tests/PLAN_TEST_EMBEDDED_WALLET.md)
-- [tests/AUTOMATISATION_TESTS_WALLET.md](./tests/AUTOMATISATION_TESTS_WALLET.md)
+---
 
-### Tests Automatisés E2E
+### 🏪 3. MARKETPLACE NFT
 
-**Statut :** 🔄 Configuration en cours
+**Statut :** ✅ Fonctionnel (Testnet) - Premier achat validé !
+
+#### 3.1 Marché Primaire (CyLimit → Users)
+
+**Ce qui fonctionne :**
+- ✅ Achat packs avec carte bancaire (Stripe)
+- ✅ Achat packs avec USDC (Embedded Wallet)
+- ✅ Batch transaction (USDC + NFT atomique)
+
+**Ce qui reste :**
+- ⏳ Nouveau système packs payants/Essence
+- ⏳ Welcome Pack offert inscription
+- ⏳ Packs offerts avant MR/MT
+
+#### 3.2 Marché Secondaire (Users ↔ Users)
+
+**Ce qui fonctionne :**
+- ✅ Lister NFT à prix fixe ($0 gas - DB uniquement)
+- ✅ Acheter NFT listé (batch USDC + NFT, gas sponsorisé)
+- ✅ Expiration automatique listings (J+2 à J+30)
+- ✅ Frais marketplace : max(0.05€, 0.05% du prix) - vendeur uniquement, acheteur 0€
+- ✅ Approval Marketplace une seule fois
+- ✅ Vérification wallet obligatoire avant achat/vente
+- ✅ Affichage balance USDC on-chain
+- ✅ Modal vente (style Sorare)
+
+**Détails techniques :**
+- MarketplaceService complet (backend)
+- Cron job quotidien (expiration listings)
+- Marketplace whitelisté dans NFT contract
+- Fees transférées vers Smart Account CyLimit
+- Voir [CONTEXT_MARKETPLACE-WALLET.md](./context/CONTEXT_MARKETPLACE-WALLET.md)
+
+**Ce qui reste :**
+- ⏳ Offres 1-to-1 (buy offers)
+- ⏳ Swaps NFT ↔ NFT
+- ⏳ Collection offers (offres publiques)
+- ⏳ Enchères avec auto-bid
+- ⏳ Tests complets achats/reventes
+
+---
+
+### 🎮 4. JEU FANTASY CYCLISME
+
+**Statut :** ✅ Fonctionnel en production
+
+#### 4.1 Système de Jeu
+
+**Ce qui fonctionne :**
+- ✅ Système multi-rôles unique (6 rôles par coureur)
+- ✅ 2 modes de jeu (CAP budget, GLOBAL expert)
+- ✅ 4 divisions par mode (League 1-4)
+- ✅ Création/modification équipes
+- ✅ Capitaine avec bonus x2
+- ✅ Validation règles (raretés, budget, ownership)
+- ✅ Calcul automatique scores (17 types de points)
+- ✅ Classements par division
+- ✅ Récompenses (USDC, XP, NFTs)
+- ✅ Système achievements/quests
+
+**Détails techniques :**
+- GameRankingPointService (calcul scores multi-rôles)
+- RankingFormulaService (17 formules de points)
+- BonusCalculationService (capitaine, division, etc.)
+- Collections partitionnées par année (game_teams_2025)
+- Voir [CONTEXT_GAME.md](./context/CONTEXT_GAME.md)
+
+#### 4.2 Types de Courses Supportées
+
+**Ce qui fonctionne :**
+- ✅ Grands Tours (Tour de France, Giro, Vuelta)
+- ✅ Monuments (Paris-Roubaix, Flandres, etc.)
+- ✅ Courses par étapes (Paris-Nice, Dauphiné, etc.)
+- ✅ Classiques d'un jour
+- ✅ Synchronisation ProCyclingStats (cron quotidien)
+- ✅ Résultats en temps réel
+- ✅ Start lists automatiques
+
+**Prochaines évolutions :**
+- 🔴 Revoir UX/UI création équipe (style Sorare)
+- 🔴 Affichage game par game avec différents modes
+- 🔴 Modes de jeu spéciaux (sprint, montagne, etc.)
+
+---
+
+### 💎 5. SYSTÈME XP & RÉCOMPENSES
+
+**Statut :** ✅ Fonctionnel (évolutions prévues)
+
+**Ce qui fonctionne :**
+- ✅ Système XP (level up)
+- ✅ Achievements/Quests
+- ✅ Récompenses USDC (top 3 divisions)
+- ✅ Récompenses NFTs
+- ✅ Système de niveau utilisateur
+
+**Prochaines évolutions :**
+- 🔴 Supprimer niveau utilisateur
+- 🔴 Nouveau système : XP → Essence (monnaie jeu)
+- 🔴 Essence White et système de coffre
+- 🔴 Coffre pour stocker/débloquer XP (coût XP)
+- 🔴 Achat cartes White avec Essence (régulation prix)
+
+---
+
+### 👥 6. SYSTÈME D'AFFILIATION
+
+**Statut :** ⚠️ À vérifier
+
+**Ce qui existe :**
+- Code affiliation dans le système
+- Tracking refInvitationCode
+
+**À faire :**
+- 🔴 Revoir système affiliés
+- 🔴 Vérifier que ça fonctionne bien
+- 🔴 Cf. retours Luc (MP Valentin)
+
+---
+
+### 📱 7. APPLICATION MOBILE
+
+**Statut :** ⏳ Planifié
+
+**Prochaines features :**
+- 🔴 Copier UX création d'équipe desktop
+- 🔴 Notifications push (course commence, résultats, classement)
+- 🔴 Marketplace mobile
+- 🔴 Gestion wallet mobile
+
+---
+
+## 🔧 OUTILS ADMIN
+
+### Backend Admin
+
+**Ce qui fonctionne :**
+- ✅ Backend séparé (port 3001)
+- ✅ Auth admin (rôles ADMIN, SUPER_ADMIN)
+- ✅ Cron jobs automatiques :
+  - Sync ProCyclingStats (courses, coureurs, résultats)
+  - Calcul scores équipes
+  - Expiration listings marketplace
+  - Distribution récompenses
+- ✅ Scripts admin (transfert USDC, migration NFTs, etc.)
+- ✅ Logging automatique (address_activities)
+
+**Scripts disponibles :**
+- `transfer-usdc-to-user.cjs` : Transfert USDC Master → User
+- `1-migrate-images-dual-storage.cjs` : Migration images AWS → Pinata + GCS
+- `2-rebuild-metadata-dual-storage.cjs` : Rebuild metadata NFTs
+- Voir `admin-backend/scripts/`
+
+---
+
+## 🚀 EN DÉVELOPPEMENT
+
+### 🔄 1. Tests Automatisés E2E (Playwright)
+
+**Statut :** En cours de finalisation
 
 **Ce qui est fait :**
 - ✅ Playwright installé et configuré
-- ✅ MailHog intégré (capture emails OTP gratuit)
-- ✅ Premiers tests créés (wallet-creation, wallet-reconnection)
+- ✅ MailHog intégré (emails OTP gratuit)
+- ✅ Tests créés (wallet-creation, wallet-reconnection)
 - ✅ Utilitaires MailHog (getOTPFromEmail, getConfirmationLinkFromEmail)
 
-**Problèmes identifiés :**
-- 🐛 Flow d'inscription : test utilise mauvais chemin (`/register` vs `/sign-up`)
-- 🐛 Champs formulaire incorrects (corrigé : `nickName`, `passwordToConfirm`, checkboxes)
-
 **Ce qui reste :**
-- 🔄 Finaliser correction tests inscription
+- 🔄 Corriger flow d'inscription (chemin `/sign-up`, champs corrects)
 - ⏳ Valider tests wallet création/reconnexion
-- ⏳ Ajouter tests marketplace
+- ⏳ Tests marketplace complets
 
 **Documents :**
+- [tests/PLAN_TEST_EMBEDDED_WALLET.md](./tests/PLAN_TEST_EMBEDDED_WALLET.md)
 - [tests/AUTOMATISATION_TESTS_WALLET.md](./tests/AUTOMATISATION_TESTS_WALLET.md)
-- Frontend : `tests/e2e/wallet-creation-email-backup-sms.spec.ts`
-- Frontend : `tests/utils/mailhog.ts`
 
 ---
 
-## ⏳ PLANIFIÉ (Pas Encore Commencé)
+### 🔄 2. Migration Images (AWS S3 → Dual Storage)
 
-### Migration Infrastructure (Basse Priorité)
-- ⏳ Migration Google Cloud Run (analysé, pas décidé)
-- ⏳ Optimisation coûts MongoDB (analysé, pas mis en œuvre)
-- ⏳ Migration Firebase Auth (planifié pour 2025, pas commencé)
+**Statut :** En cours
 
-**Note :** Ces migrations ont été analysées mais mises en pause. Documentation archivée dans `archives/migrations-cloud/` et `archives/analyses-2024/`.
+**Objectif :**
+- Migrer de AWS S3 → Pinata IPFS + Google Cloud Storage
+- Décentralisation (IPFS)
+- Performance (CDN Google gratuit)
+- Redondance maximale
 
-### Features Game Avancées (Basse Priorité)
-- ⏳ Système bonus avancé (planifié, pas prioritaire)
-- ⏳ Transformation game teams (analysé, pas mis en œuvre)
+**Ce qui est fait :**
+- ✅ Script migration créé (`1-migrate-images-dual-storage.cjs`)
+- ✅ Script rebuild metadata créé (`2-rebuild-metadata-dual-storage.cjs`)
 
-**Note :** Documentation archivée dans `archives/game-features/`.
-
----
-
-## ❌ ABANDONNÉ / NON MIS EN ŒUVRE
-
-### Migration vers Base (Abandonné)
-**Raison :** NFTs déjà sur Polygon, coût migration trop élevé, pas de ROI
-
-**Documentation :** Archivée dans `archives/wallets-v1-v2/migration-base-non-realisee/`
-
-### Migration Wallets V1→V2 Complexe (Simplifié)
-**Raison :** Approche initiale trop complexe, remplacée par solution plus simple
-
-**Documentation :** Archivée dans `archives/wallets-v1-v2/`
+**Ce qui reste :**
+- ⏳ Exécuter migration sur tous les NFTs
+- ⏳ Valider URLs Pinata/Google fonctionnelles
+- ⏳ Mettre à jour frontend (switch URLs)
 
 ---
 
-## 🐛 Problèmes Connus
+## ⏳ PLANIFIÉ (Roadmap)
 
-### ✅ Problème #1 : Tests Playwright - Flow Inscription (RÉSOLU)
+### Priorité #1 : Migration Infrastructure
 
-**Description :** Les tests E2E utilisent un mauvais chemin pour l'inscription
+#### Google Cloud Run
+- ⏳ Migrer backends AWS → Google Cloud Run
+- **Économies attendues :** ~300-400€/mois
+- **Timing :** Après tests Playwright validés
 
-**Impact :** Tests échouent sur la création de compte
-
-**Statut :** ✅ Résolu
-
-**Solution :** 
-- Corriger chemin : `/register` → `/sign-up`
-- Corriger champs : `confirmPassword` → `passwordToConfirm`
-- Ajouter étapes : vérification email + connexion
-
-**Suivi :** Frontend `tests/e2e/CORRECTIONS-FLOW-INSCRIPTION.md`
-
-### ✅ Problème #2 : Migration Coinbase - Détection oldWalletAddress (RÉSOLU 3 Nov 2025 20h00)
-
-**Description :** 
-1. Les utilisateurs avec un ancien wallet mais sans Embedded Wallet créé étaient considérés à tort comme ayant déjà migré (vérification sur `walletAddress` au lieu de `oldWalletAddress`)
-2. Les anciens utilisateurs voyaient leur ancien wallet en "lecture seule" au lieu d'être forcés à créer un Embedded Wallet
-3. Les utilisateurs avec Embedded Wallet créé ne voyaient PAS leur wallet en lecture seule
-
-**Impact :** 
-- Migration non déclenchée pour certains utilisateurs ayant un ancien wallet
-- UX confuse : les anciens users pensaient avoir un Embedded Wallet alors qu'ils n'en avaient pas
-- UX manquante : les users avec Embedded Wallet ne pouvaient pas voir leur balance sans se connecter
-
-**Statut :** ✅ Résolu
-
-**Solution Backend :**
-- Fichier `migration.service.ts` ligne 558 : Vérification de `oldWalletAddress` au lieu de `walletAddress` dans `checkMigrationRequired()`
-- Fichier `user.controller.ts` ligne 843 : Sauvegarde de `oldWalletAddress` uniquement lors de la première migration (évite d'écraser l'ancien wallet)
-- Fichier `profile.dto.ts` ligne 58 : Ajout `walletSyncedAt` dans ProfileDto pour que le frontend puisse détecter si Embedded Wallet créé
-
-**Solution Frontend :**
-- Fichier `useEmbeddedWallet.ts` lignes 287, 524 : Affichage balance lecture seule SI `walletSyncedAt` existe (pas pour anciens users)
-- Fichier `useWalletRequired.ts` ligne 143 : Détection wallet via `walletSyncedAt` pour éviter modal pendant reconnexion
-- Fichier `WalletOnboardingManager.tsx` ligne 82 : Modal affiché TOUJOURS si pas d'Embedded Wallet (ignore localStorage)
-- Fichier `WalletOnboardingModal.tsx` lignes 72, 91 : Suppression sauvegarde localStorage (modal persiste jusqu'à création wallet)
-- Fichier `WalletAuthModal.tsx` lignes 495, 507, 558, 934, 1005, 1023, 1060, 1296 : Utilisation de `walletSyncedAt` au lieu de `walletAddress` pour détecter Embedded Wallet
-- Fichier `RampButton/index.tsx` ligne 34 : Utilisation de `address` (Embedded Wallet) au lieu de `userProfile.walletAddress`
-
-**Résultat :**
-- ✅ Les anciens utilisateurs (sans `walletSyncedAt`) voient le `WalletOnboardingModal` à chaque connexion
-- ✅ Les utilisateurs avec Embedded Wallet (avec `walletSyncedAt`) ne voient PAS le modal
-- ✅ Les utilisateurs avec Embedded Wallet voient leur wallet en **lecture seule** (balance + adresse)
-- ✅ Pas d'affichage en lecture seule pour les anciens users (walletAddress SANS walletSyncedAt)
-- ✅ Migration automatique déclenchée dès création de l'Embedded Wallet
-
-**Suivi :** Backend User + Frontend
+#### Firebase Auth
+- ⏳ Migrer Custom JWT → Firebase Auth
+- **Bénéfices :** OTP SMS natif, 2FA mobile, biométrie
+- **Timing :** Après migration Google Cloud Run
+- Voir [CONTEXT_AUTH.md](./context/CONTEXT_AUTH.md)
 
 ---
 
-## 📊 Métriques Projet
+### Priorité #2 : Nouvelles Features Game
 
-### Utilisateurs
-- **Users actifs :** ~200/jour
-- **Users totaux :** ~6000 (estimation)
+#### 🔴 Système Packs & Essence
+- Packs payants avec prix évolutif
+- Packs achetables avec Essence
+- Nouveau pack chaque semaine
+- Nouveau pack 48h avant MR/MT (Monument/Tour)
+- Essence White et Welcome Pack
+- Pack offert à chaque MR/MT
+
+#### 🔴 Suppression Bonus Obsolètes
+- ❌ Supprimer bonus carte dernière saison
+- ❌ Supprimer bonus premier détenteur
+- ✅ Garder bonus capitaine
+- ✅ Garder bonus division
+
+#### 🔴 UX/UI Amélioration
+- Revoir création d'équipe (style Sorare)
+- Affichage plus simple et intuitif
+- Drag & drop amélioré
+
+#### 🔴 Système de Prêt
+- UX/UI pour prêter cartes entre users
+- Conditions et durées de prêt
+
+#### 🔴 Modes de Jeu Multiples
+- Revoir affichage games
+- Game par game avec différents modes
+- Modes spéciaux (sprint, montagne, classiques)
+
+#### 🔴 Système XP/Essence Revu
+- ❌ Supprimer niveau user
+- ✅ XP → Essence (monnaie du jeu)
+- ✅ Système coffre (stocker XP)
+- ✅ Coût XP pour débloquer (gestion frustration)
+- ✅ Achat White avec Essence (régulation prix)
+
+Voir [CONTEXT_GAME.md](./context/CONTEXT_GAME.md) pour détails système actuel
+
+---
+
+### Priorité #3 : Marketplace Avancé
+
+**Features à implémenter :**
+- ⏳ Tests complets achats/reventes
+- ⏳ Offres 1-to-1 (buy offers)
+- ⏳ Swaps NFT ↔ NFT
+- ⏳ Collection offers publiques
+- ⏳ Enchères avec auto-bid
+
+Voir [CONTEXT_MARKETPLACE-WALLET.md](./context/CONTEXT_MARKETPLACE-WALLET.md)
+
+---
+
+### Priorité #4 : Application Mobile
+
+**Features planifiées :**
+- ⏳ Copier UX création d'équipe
+- ⏳ Notifications push (courses, résultats, classements)
+- ⏳ Marketplace mobile
+- ⏳ Wallet mobile (biométrie)
+
+---
+
+## 🐛 PROBLÈMES CONNUS
+
+### ✅ RÉSOLUS
+
+#### Problème #1 : Tests Playwright - Flow Inscription
+**Description :** Tests utilisent mauvais chemin `/register` au lieu de `/sign-up`  
+**Statut :** ✅ Résolu (corrections identifiées)  
+**Fichiers :** Frontend `tests/e2e/`
+
+#### Problème #2 : Migration Coinbase - Détection oldWalletAddress
+**Description :** Anciens users voyaient wallet lecture seule incorrectement  
+**Statut :** ✅ Résolu (3 Nov 2025)  
+**Fichiers :** `migration.service.ts`, `user.controller.ts`, `useEmbeddedWallet.ts`
+
+#### Problème #3 : Appels API multiples Wallet
+**Description :** 4-5 fetches balance au refresh page  
+**Statut :** ✅ Résolu (6 Nov 2025) - WalletContext centralisé  
+**Fichiers :** `WalletContext.tsx`, `useEmbeddedWallet.ts`, `_app.tsx`  
+**Résultat :** -75% appels API
+
+---
+
+### ⚠️ EN COURS
+
+Aucun problème bloquant actuellement.
+
+---
+
+## 📊 MÉTRIQUES TECHNIQUES
 
 ### Code
-- **Backend :** ~50,000 lignes (NestJS)
+- **Backend User :** ~50,000 lignes (NestJS)
+- **Backend Admin :** ~45,000 lignes (NestJS)
 - **Frontend :** ~30,000 lignes (Next.js)
-- **Tests :** En cours d'ajout (Playwright E2E)
+- **Tests E2E :** En cours d'ajout (Playwright)
 
 ### Infrastructure
-- **Coût actuel :** ~580€/mois (MongoDB + AWS)
-- **Hébergement :** AWS + MongoDB Atlas
-- **Monitoring :** Basique (logs)
+- **Coût actuel :** ~580€/mois
+  - MongoDB Atlas : ~350€/mois
+  - AWS (hébergement + S3) : ~200€/mois
+  - Autres services : ~30€/mois
+- **Coût Coinbase CDP :** ~5-10€/mois (Embedded Wallets + gas sponsorship)
+- **Économies potentielles (Google Cloud Run) :** ~300-400€/mois
 
 ### Documentation
-- **Fichiers actifs :** ~11 fichiers
+- **Fichiers actifs :** 15 fichiers
+- **Contextes disponibles :** 3 (AUTH, GAME, MARKETPLACE-WALLET)
 - **Fichiers archivés :** ~160 fichiers
-- **Dernière réorganisation :** 28 Octobre 2025
-- **Dernière création majeure :** 5 Novembre 2025 (VISION-COMPLETE-WALLETS-MARKETPLACE-NFT.md)
 
 ---
 
-## 🔧 Configuration Actuelle
+## 📚 DOCUMENTATION DISPONIBLE
 
-### Environnements
+### Contextes Techniques (À Charger Avant Modifications)
 
-| Environnement | Frontend | Backend User | Backend Admin | Base de Données |
-|---------------|----------|--------------|---------------|-----------------|
-| **Local** | localhost:3001 | localhost:4000 | localhost:3001 | MongoDB local (Docker) |
-| **Dev** | - | - | - | MongoDB Atlas Dev |
-| **Production** | cylimit.com | api.cylimit.com | admin-api | MongoDB Atlas Prod |
+| Contexte | Fichier | Lignes | Tokens | Coût |
+|----------|---------|--------|--------|------|
+| **Auth** | [CONTEXT_AUTH.md](./context/CONTEXT_AUTH.md) | 683 | ~8,540 | ~$0.025 |
+| **Game** | [CONTEXT_GAME.md](./context/CONTEXT_GAME.md) | 938 | ~11,700 | ~$0.035 |
+| **Marketplace & Wallets** | [CONTEXT_MARKETPLACE-WALLET.md](./context/CONTEXT_MARKETPLACE-WALLET.md) | 2592 | ~32,000 | ~$0.096 |
 
-### Services Externes Utilisés
-- ✅ MongoDB Atlas (base de données)
-- ✅ AWS (hébergement)
-- ✅ Stripe (paiements)
-- ✅ Alchemy (RPC Polygon)
-- ✅ Pinata ou Fleek (stockage IPFS)
-- 🔄 Coinbase CDP (Embedded Wallets - en intégration)
-- 🔄 MailHog (tests emails - local)
+**Total si chargement des 3 contextes :** ~52,240 tokens, ~$0.156
 
----
+### Guides & Plans
 
-## 🎯 Priorités Actuelles
+- [PROCHAINES_ETAPES.md](./PROCHAINES_ETAPES.md) - Roadmap détaillée
+- [tests/PLAN_TEST_EMBEDDED_WALLET.md](./tests/PLAN_TEST_EMBEDDED_WALLET.md) - 42 cas de test
+- [tests/AUTOMATISATION_TESTS_WALLET.md](./tests/AUTOMATISATION_TESTS_WALLET.md) - Tests E2E
 
-### Priorité #1 : Tests Automatisés
-**Objectif :** Automatiser les tests du wallet Embedded pour accélérer le développement
+### Règles
 
-**Actions en cours :**
-- 🔄 Corriger tests Playwright (flow inscription)
-- ⏳ Valider tests wallet création
-- ⏳ Valider tests wallet reconnexion
-
-**Deadline :** Fin Octobre 2025
-
-### Priorité #2 : Embedded Wallet Production
-**Objectif :** Mettre en production le système Embedded Wallet Coinbase
-
-**Actions nécessaires :**
-- ⏳ Finaliser intégration frontend
-- ⏳ Tests end-to-end complets
-- ⏳ Migration users existants
-
-**Deadline :** Novembre 2025
-
-### Priorité #3 : Stabilisation
-**Objectif :** Stabiliser la plateforme avant nouvelle saison
-
-**Actions nécessaires :**
-- ⏳ Fix bugs identifiés
-- ⏳ Optimisations performances
-- ⏳ Documentation technique à jour
-
-**Deadline :** Décembre 2025
+- [rules/analyse-du-prompt.mdc](../rules/analyse-du-prompt.mdc) - Process analyse + chargement contexte
+- [GUIDE_GESTION_DOCUMENTATION.md](./GUIDE_GESTION_DOCUMENTATION.md) - Règles gestion docs (archivé)
 
 ---
 
-## 📝 Décisions Techniques Importantes
+## 🎯 DÉCISIONS TECHNIQUES IMPORTANTES
 
-### Architecture Backend
-- ✅ **Séparation Admin/User** : Deux backends distincts pour isolation
-- ✅ **Dépendances circulaires** : Résolues avec `forwardRef()` NestJS
-- ✅ **Base de données** : MongoDB avec partitionnement par année (game_teams_2025, etc.)
+### Architecture
+- ✅ **Backends séparés** (User + Admin) pour isolation et sécurité
+- ✅ **Base sur Base blockchain** (au lieu de Polygon) pour coûts gas réduits
+- ✅ **Embedded Wallets** (au lieu de MetaMask) pour UX simplifiée
+- ✅ **Marketplace DB-first** (listings $0 gas) pour économies
+- ✅ **Multi-rôles scoring** (unique vs autres fantasy games)
 
-### Marketplace Architecture (30 Oct 2025)
-- ✅ **Listing NFT sans gas** : Système MarketplaceService complet ($0 gas pour user)
-- ✅ **Expiration automatique** : Listings expirent automatiquement via cron job quotidien (minuit UTC)
-- ✅ **Date d'expiration personnalisable** : Users choisissent entre J+2 et J+30 via calendrier react-calendar
-- ✅ **Source de vérité unique** : marketType ('owner', 'fixed', 'auction', 'swap') au lieu de isListed
-- ✅ **Frontend uniformisé** : SellInfo.tsx et SellCardForm utilisent tous deux useMarketplace.listNFT()
-- ✅ **Delisting simplifié** : DELETE /marketplace/delist/:listingId (passe listingId directement)
-- ✅ **Messages personnalisés** : Toast affiche "Prénom NOM RARETÉ NumSérie/DernierNumSérie AnnéeEdition mise en vente à X $"
-- ✅ **Types corrigés** : serialNumber (number) utilisé partout, firstSerialNumber supprimé
-- ✅ **Prix depuis listing** : Utilisation de listing.price au lieu de fixedPrice (deprecated)
-- ✅ **Routes API** : 
-  - POST /marketplace/list (créer listing avec expiresAt)
-  - DELETE /marketplace/delist/:listingId (annuler listing)
-  - POST /marketplace/prepare-buy/:listingId (préparer achat)
-  - POST /marketplace/confirm-buy (confirmer achat)
-- ✅ **Documentation complète** : Tous les fichiers modifiés ont commentaires détaillés (OBJECTIF/POURQUOI/COMMENT/APPELÉ PAR/APPELLE)
-- ⏳ **TODO** : Migrer aussi BuyButton vers le nouveau système marketplace
+### Sécurité
+- ✅ JWT tokens (30 jours)
+- ✅ Vérification email obligatoire
+- ✅ Whitelist NFT contract (transferts contrôlés)
+- ✅ Vérifications ownership (DB + Blockchain)
+- ✅ Gas sponsorisé via CDP Paymaster (limite budget)
 
-### Tests
-- ✅ **Framework :** Playwright pour E2E
-- ✅ **Emails OTP :** MailHog (gratuit, local)
-- ❌ **SMS OTP :** Pas automatisés (coût Twilio 15€/mois)
-
-### Wallet
-- ✅ **Choix :** Coinbase Embedded Wallets (vs MetaMask)
-- ✅ **Réseau :** Polygon Mainnet (vs Base)
-- ⏳ **Intégration :** En cours
+### Évolutivité
+- ✅ Collections MongoDB partitionnées par année
+- ✅ Redis pour cache
+- ✅ Bull Queue pour jobs asynchrones
+- ✅ Cron jobs pour calculs lourds (admin backend)
 
 ---
 
-## 🗓️ Historique Récent
+## 🔄 MIGRATIONS EN COURS / STATUT
 
-### Novembre 2025
-- ✅ 5 Nov 03h00 : **GUIDE VÉRIFICATION BASESCAN DEPUIS REMIX**
-  - Création guide complet GUIDE-VERIFICATION-BASESCAN-REMIX.md
-  - Méthode 1 : Plugin Remix (recommandé) avec screenshots textuels
-  - Méthode 2 : Basescan UI manuelle (alternative)
-  - Étapes détaillées : Activer plugin, API key, configuration, vérification
-  - Section troubleshooting (5 problèmes courants + solutions)
-  - Checklist post-vérification (Read/Write Contract)
-  - Guide obtention Constructor Arguments (3 options)
-  - Timeline visuelle complète (50 minutes étape par étape)
-  - Astuces : Flatten contrat, sauvegarder .env, vérifier en parallèle
-  - 1 fichier créé (guide complet déploiement + vérification)
-- ✅ 5 Nov 02h45 : **CORRECTIONS CODE MARKETPLACE - 3 Problèmes Résolus**
-  - **FIX #1** : Ajout type viem strict sur encodeFunctionData (useMarketplace.ts ligne 207)
-  - **FIX #2** : Vérification balance USDC buyer (frontend + backend)
-    * Frontend BuyNFT.tsx : Affichage warning si balance insuffisante
-    * Backend prepareBuyNFT() : Vérification on-chain balance USDC
-    * Bouton "Buy" désactivé si balance insuffisante
-    * Message clair "Need X USDC, have Y USDC"
-  - **FIX #3** : Vérification approval seller Marketplace (backend)
-    * Backend prepareBuyNFT() : Appel isApprovedForAll(seller, marketplace)
-    * Erreur bloquante si seller n'a pas approuvé
-    * Évite erreur "Transfer not allowed" on-chain
-  - Logging détaillé ajouté (balance, approval)
-  - 3 fichiers modifiés, 0 erreur linter
-  - Note audit passée de 8/10 → 10/10 ✅
-- ✅ 5 Nov 02h30 : **AUDIT COMPLET CODE MARKETPLACE & WALLET**
-  - Vérification conformité avec CONTEXT_MARKETPLACE-WALLET.md
-  - Analyse Frontend : BuyNFT.tsx, ListNFT.tsx, useMarketplace.ts, WalletOnboardingManager.tsx
-  - Analyse Backend : marketplace.service.ts, marketplace.controller.ts
-  - Création rapport VERIFICATION-CODE-MARKETPLACE-WALLET.md
-  - **RÉSULTAT : 8/10** - Code de bonne qualité avec quelques améliorations
-  - **3 problèmes identifiés** :
-    * 🟡 Types viem stricts manquants (useMarketplace.ts ligne 207)
-    * 🟡 Balance USDC pas vérifiée avant achat (UX)
-    * 🟡 Approval seller pas vérifié (sécurité)
-  - **Points forts** : Architecture conforme, séparation claire, comments détaillés
-  - Recommandations prioritaires documentées (haute/moyenne/basse)
-  - 1 fichier créé (rapport audit complet)
-- ✅ 5 Nov 02h15 : **AJOUT GUIDE UTILISATION MCP COINBASE DEVELOPER**
-  - Nouvelle section complète "Guide d'Utilisation MCP Coinbase Developer"
-  - Processus de vérification obligatoire en 5 étapes
-  - 5 exemples concrets de vérifications MCP avec code
-  - Checklist utilisation MCP (7 points de contrôle)
-  - Liste requêtes MCP utiles (Sessions, UserOps, Paymaster, Hooks, Pricing)
-  - Bonnes pratiques requêtes MCP (spécifiques vs vagues)
-  - Tableau résultats vérifications MCP (8 éléments confirmés)
-  - Mise à jour checklist implémentation avec vérifications MCP obligatoires
-  - Document maintenant ~2570 lignes (guide complet + conformité garantie)
-  - 1 fichier mis à jour (VISION-COMPLETE-WALLETS-MARKETPLACE-NFT.md)
-- ✅ 5 Nov 02h00 : **CORRECTION APPROVALS USDC - Clarification Architecture**
-  - Correction erreur documentation : USDC n'a PAS besoin d'approval Marketplace
-  - Clarification transfer() vs transferFrom() dans architecture CyLimit
-  - Buyer transfère USDC directement (pas via Marketplace)
-  - Marketplace transfère uniquement NFT (avec approval NFT du Seller)
-  - Mise à jour tableaux récapitulatifs approvals
-  - Ajout section explicative "Pourquoi NFT approval mais pas USDC ?"
-  - 1 fichier mis à jour (VISION-COMPLETE-WALLETS-MARKETPLACE-NFT.md)
-- ✅ 5 Nov 01h45 : **ENRICHISSEMENT DOCUMENTATION - Sessions Coinbase + Bonnes Pratiques**
-  - Ajout détails sessions Embedded Wallets (Access Token 15min, Refresh Token 7 jours)
-  - Timeline session typique avec exemples concrets (reconnexion auto)
-  - Causes expiration inattendue (cookies, 5 appareils, etc.)
-  - Tarification officielle Coinbase ($0.005/op, 5000 ops/mois gratuit)
-  - Calcul coûts CyLimit : $4.90/mois pour 1000 users
-  - Limites Smart Accounts (UserOps séquentielles, Base Paymaster only)
-  - Erreurs communes à éviter (types viem, parallèle, session expirée)
-  - Bonus USDC Rewards 3.85% APY (USA uniquement)
-  - Vérification conformité avec MCP Coinbase Developer docs
-  - Document maintenant ~2100 lignes avec exemples UX détaillés
-  - 1 fichier mis à jour (VISION-COMPLETE-WALLETS-MARKETPLACE-NFT.md)
-- ✅ 5 Nov 01h30 : **FIX CRITIQUE WHITELIST NFT + MISE À JOUR DOCUMENTATION COMPLÈTE**
-  - **PROBLÈME CRITIQUE IDENTIFIÉ** : Contrat NFT testnet bloque TOUS les achats user-to-user
-    * `_update()` vérifie uniquement `transferWhitelist[from]` et `transferWhitelist[to]`
-    * Marketplace ne peut PAS transférer car UserA et UserB non whitelistés
-    * Impact : Marketplace inutilisable, tous les listings bloqués
-  - **SOLUTION** : Ajout de `transferWhitelist[auth]` dans `_update()`
-    * Permet au Marketplace (auth) de transférer même si from/to non whitelistés
-    * 1 seule ligne ajoutée au contrat
-  - **FICHIERS CRÉÉS** :
-    * `CyLimitNFT_v2_FIXED.sol` - Contrat corrigé avec auth whitelist
-    * `deploy-nft-v2-FIXED.md` - Guide déploiement complet
-    * `3-deploy-and-setup-nft-fixed.js` - Script automatisé déploiement + whitelist
-  - **DOCUMENTATION** : Mise à jour `VISION-COMPLETE-WALLETS-MARKETPLACE-NFT.md`
-    * Ajout section détaillée Embedded Wallets (création, double auth Email/SMS, cycle de vie)
-    * Ajout exemples concrets : ListNFT.tsx, BuyNFT.tsx, useMarketplace.ts
-    * Ajout section "Problème Critique Identifié & Solution" avec diagnostic complet
-    * Ajout flows UX détaillés (ce que voit le user étape par étape)
-    * ~2300 lignes totales maintenant
-  - 3 fichiers créés (1 contrat, 1 guide, 1 script), 1 fichier mis à jour
-- ✅ 5 Nov 00h30 : **CRÉATION DOCUMENTATION VISION COMPLÈTE WALLETS-MARKETPLACE-NFT**
-  - Création document de référence unique `VISION-COMPLETE-WALLETS-MARKETPLACE-NFT.md`
-  - Couvre : Wallets (Embedded + Master), Smart Contracts (NFT v2, Marketplace v2), Marketplace
-  - Détaille : Architecture globale, Approvals & autorisations Coinbase, Marché primaire/secondaire
-  - Inclut : Flows achats/ventes, Sécurité & contrôle, Intégration Coinbase CDP
-  - ~1500 lignes avec code examples TypeScript/Solidity
-  - Consolide 6 documents sources en 1 vision complète
-  - 1 fichier créé, mise à jour ETAT_PROJET.md
-- ✅ 4 Nov 23h : **SCRIPT ADMIN TRANSFERT USDC VERS USER**
-  - Création script admin `transfer-usdc-to-user.cjs` pour transfert USDC Master → Embedded Wallet
-  - Validation auto utilisateur + vérification balance USDC
-  - Logging auto dans address_activities (type: ADMIN_TRANSFER)
-  - Documentation complète scripts/wallet/README.md
-  - 2 fichiers créés
-- ✅ 4 Nov 19h : **VÉRIFICATION WALLET OBLIGATOIRE POUR ACHAT NFT**
-  - BuyButton vérifie wallet avant PaymentModal
-  - WalletRequiredModal bloquant si pas de wallet
-  - Relance auto achat après création wallet
-  - 3 fichiers modifiés
-- ✅ 3 Nov 20h20 : **FIX COMPLET MIGRATION COINBASE + LECTURE SEULE + SESSION**
-  - **Problème** : 
-    1. Anciens users voyaient wallet en lecture seule
-    2. Users avec Embedded Wallet ne voyaient PAS leur wallet en lecture seule
-    3. Frontend ne recevait pas walletSyncedAt (manquait dans ProfileDto)
-    4. Modal s'affichait à chaque changement de page
-    5. Modal ne se réaffichait pas après logout/login
-  - **Backend** :
-    * `migration.service.ts` ligne 558 : fix vérification `oldWalletAddress` au lieu de `walletAddress`
-    * `user.controller.ts` ligne 843 : fix sauvegarde `oldWalletAddress` (uniquement première migration)
-    * `profile.dto.ts` ligne 58 : ajout walletSyncedAt dans ProfileDto (fix détection frontend)
-  - **Frontend** :
-    * `useEmbeddedWallet.ts` lignes 287, 524 : affichage balance lecture seule SI walletSyncedAt
-    * `useWalletRequired.ts` ligne 143 : détection wallet via walletSyncedAt (fix reconnexion)
-    * `WalletOnboardingManager.tsx` lignes 9, 36, 59, 105 : flag session + reset au changement user
-    * `WalletOnboardingModal.tsx` lignes 72, 91 : suppression localStorage (modal persiste)
-    * `WalletAuthModal.tsx` lignes 495, 507, 558, 934, 1005, 1023, 1060, 1296 : utilisation walletSyncedAt
-    * `RampButton/index.tsx` ligne 34 : utilisation address (Embedded Wallet)
-  - **Résultat** : 
-    * Anciens users → modal 1 fois/session, reset au logout, PAS lecture seule
-    * Users avec Embedded → lecture seule OK, pas de modal, reconnexion auto
-  - 9 fichiers modifiés (3 backend, 6 frontend), 0 erreur linter
-- ✅ 3 Nov 18h : **FIX FILTRAGE MARCHÉ SECONDAIRE**
-  - Correction NftRepository pour joindre collection 'listings' et filtrer sur status='active'
-  - Support filtre de prix sur listing.price au lieu de fixedPrice obsolète
+### NFTs : Polygon Mainnet (Production Actuelle)
+**Statut :** ✅ En production sur Polygon  
+**Contrat :** `0xA049a83533e437BdeeCaab8eD8DF9934d0A8c06F` (NFT v1)  
+**NFTs mintés :** ~25,000-30,000 cartes  
+**Propriétaires :** Master Wallet + quelques user wallets (anciens)
 
-### Octobre 2025
-- ✅ 30 Oct 16h : **MARKETPLACE LISTING AVEC EXPIRATION - SESSION COMPLÈTE**
-  - Correction bug serialNumber : utilisation de serialNumber (number) au lieu de firstSerialNumber
-  - Ajout champ expiresAt dans Listing schema (Date, index, nullable)
-  - Ajout status 'expired' dans Listing enum
-  - Implémentation cron job quotidien (minuit UTC) pour expirer listings automatiquement
-  - Intégration calendrier react-calendar dans modales de confirmation (J+2 à J+30)
-  - Validation backend : expiresAt pas dans le passé, max 30 jours
-  - Messages toast personnalisés avec détails carte (rareté MAJUSCULE, serialNumber correct)
-  - Correction types frontend : serialNumber number, suppression firstSerialNumber du type CardItem
-  - Migration complète de fixedPrice → listing.price dans tous les composants
-  - Simplification delisting : DELETE /marketplace/delist/:listingId (passe listingId directement)
-  - **DOCUMENTATION COMPLÈTE** : Ajout commentaires détaillés sur TOUS les fichiers modifiés :
-    * Backend : nft.schema.ts, marketplace.service.ts, marketplace.controller.ts, marketplace-cron.service.ts
-    * Frontend : card.d.ts, CancelListingButton, SellCardForm, SellInfo.tsx
-    * Format : OBJECTIF/POURQUOI/COMMENT/APPELÉ PAR/APPELLE pour chaque fichier et fonction
-  - Internationalisation : confirm_listing, choose_market_expiration_date
-  - 15+ fichiers modifiés, 0 erreur linter
-- ✅ 28 Oct : **RÉORGANISATION MASSIVE DOCUMENTATION** 
-  - 171 fichiers → 9 fichiers actifs + 164 archivés
-  - Création GUIDE_GESTION_DOCUMENTATION.md (règles strictes)
-  - Création README.md, ETAT_PROJET.md, PROCHAINES_ETAPES.md
-  - Structure claire : tests/, game/, architecture/, archives/
-  - Memory créée pour règles de gestion doc
-- 🔄 28 Oct : Correction tests Playwright (flow inscription)
-- ✅ 28 Oct : Ajout fonction `getConfirmationLinkFromEmail` dans MailHog utils
-- ✅ 10 Oct : Création plan test complet Embedded Wallet (42 cas)
-- ✅ 02 Oct : Diverses analyses et fixes techniques
+**Migration Polygon → Base :**
+- ❌ **NON réalisée** - Coût trop élevé (~$10k gas Polygon)
+- ⏳ **Dual-chain temporaire** : Anciens NFTs restent sur Polygon, nouveaux sur Base
+- 📋 **Plan futur** : Bridge utilisateurs Polygon → Base (volontaire)
+- 📚 **Documentation :** `archives/wallets-v1-v2/migration-base-non-realisee/`
 
-### Septembre 2025
-- ✅ Fix dépendances circulaires GameModule ↔ NftModule
-- ✅ Corrections multiples backend
+### Wallets : Migration vers Embedded Wallets Coinbase
+**Statut :** 🔄 Migration active et automatique  
+**Ancien système :** Wallets custodial (privateKey en DB)  
+**Nouveau système :** Embedded Wallets Coinbase (non-custodial, Smart Accounts)
+
+**Processus de migration complet :**
+
+**PHASE 1 - Préparation (Admin) :**
+1. **Remint NFTs Polygon → Base v2** (admin backend)
+   - Tous les NFTs v1 (Polygon) remintés sur Base v2
+   - Owner temporaire : Master Wallet (Base)
+   - En DB : ownerId reste le propriétaire original
+   - ~25,000-30,000 NFTs remintés
+
+**PHASE 2 - Migration Utilisateur (Automatique) :**
+1. User créé avant Nov 2025 → A un `oldWalletAddress` (Polygon)
+2. User se connecte → Création automatique Embedded Wallet (Base)
+3. Backend détecte `oldWalletAddress` → Déclenche migration
+4. Migration automatique :
+   - **USDC :** Master Wallet (Base) → Embedded Wallet (Base)
+   - **NFTs v2 :** Master Wallet (Base) → Embedded Wallet (Base) en **BATCH**
+     - Utilise fonction `batchTransfer()` du contrat
+     - Batch de 50 NFTs max par transaction
+     - Économie : -87% coûts, -90% temps
+5. User reçoit tous ses actifs sur son Embedded Wallet
+
+**Sécurité migration :**
+- ✅ Ownership on-chain vérifié avant transfert
+- ✅ Validation adresse destinataire (doit être Embedded Wallet CyLimit)
+- ✅ Private key Master Wallet dans AWS Nitro Enclave TEE
+- ✅ Logging automatique dans address_activities
+- ✅ Retry logic avec exponential backoff
+- ✅ Rate limiting (3s entre batches)
+
+**Codes migration :**
+- ✅ `migration.service.ts` : 
+  - `transferUSDC()` : Migration USDC
+  - `transferNFTsV2()` : Migration NFTs en batch
+  - `checkMigrationRequired()` : Vérifie oldWalletAddress
+  - `migrateUserAssets()` : Orchestration complète
+- ✅ Logging automatique dans address_activities
+
+**Résultat :** User reçoit TOUS ses actifs (USDC + NFTs) automatiquement sur son Embedded Wallet Base.
 
 ---
 
-## 📋 Backlog (Non Prioritaire)
+## 🔗 CONTEXTES DISPONIBLES
 
-- Migration Google Cloud Run (économies potentielles analysées)
-- Optimisation MongoDB (réduction coûts)
-- Features game avancées (bonus, transformations)
-- Migration Firebase Auth
-- App mobile native
+Pour toute modification sur ces sujets, **charger le contexte approprié AVANT** :
 
----
+1. **Authentification, Login, Signup, OAuth, Reset Password**
+   → [CONTEXT_AUTH.md](./context/CONTEXT_AUTH.md) (~5.6k tokens)
 
-## 🆘 Points d'Attention
+2. **Jeu Fantasy, Équipes, Scoring, Courses, ProCyclingStats**
+   → [CONTEXT_GAME.md](./context/CONTEXT_GAME.md) (~9.4k tokens)
 
-### Risques Identifiés
-- ⚠️ Coûts infrastructure élevés (580€/mois pour 200 users/jour)
-- ⚠️ Absence de tests automatisés (en cours de résolution)
-- ⚠️ Dépendance forte à MongoDB Atlas
-
-### Dettes Techniques
-- Besoin optimisation requêtes MongoDB
-- Besoin monitoring avancé (Sentry, etc.)
-- Besoin tests unitaires backend
+3. **Marketplace, Wallets, Achats, Ventes, USDC, Smart Contracts**
+   → [CONTEXT_MARKETPLACE-WALLET.md](./context/CONTEXT_MARKETPLACE-WALLET.md) (~32k tokens)
 
 ---
 
-## 📞 Contact & Support
+## 📞 CONTACT & SUPPORT
 
 **Équipe :** CyLimit Development Team  
-**Documentation :** `/docs` (ce dossier)  
-**Code :** Repositories séparés (frontend, backend-user, backend-admin)
+**Documentation :** `/cylimit-infrastructure/docs/`  
+**Repositories :**
+- `cylimit-frontend-develop` (User Frontend)
+- `cylimit-backend-develop` (User Backend)
+- `cylimit-admin-backend` (Admin Backend)
+- `cylimit-admin-frontend` (Admin Frontend)
+- `cylimit-infrastructure` (Docs, scripts, config)
+
+---
+
+## 📝 MODIFICATIONS RÉCENTES
+
+### Novembre 2025
+
+- ✅ **6 Nov 12h00** : Refonte ETAT_PROJET.md
+  - Structure basée sur expérience utilisateur/admin
+  - Stack technique corrigée et détaillée
+  - Création CONTEXT_AUTH.md, CONTEXT_GAME.md
+  - Fichiers : ETAT_PROJET.md, CONTEXT_AUTH.md, CONTEXT_GAME.md
+
+- ✅ **6 Nov 10h30** : Optimisation appels API - WalletContext
+  - Problème : 4-5 fetches balance au refresh page
+  - Solution : WalletContext centralisé
+  - Résultat : -75% appels API
+  - Fichiers : WalletContext.tsx, useEmbeddedWallet.ts, _app.tsx, useMarketplace.ts
+
+- ✅ **5 Nov 16h45** : Marketplace COMPLÈTEMENT FONCTIONNEL
+  - Nouveau Marketplace déployé : `0xA99c44fE605ABdb86c92394a9f7A2Da84da35786`
+  - Marketplace whitelisté dans NFT contract
+  - Premier achat NFT testé et validé avec succès
+  - Fichiers : marketplace.service.ts, useMarketplace.ts, BuyNFT.tsx
+
+- ✅ **4 Nov 23h** : Logging automatique migrations et transferts USDC
+  - Script admin transfer-usdc-to-user.cjs
+  - Logging dans address_activities
+  - Fichiers : MigrationService, script transfer-usdc
+
+- ✅ **4 Nov 22h** : Système complet gestion solde USDC
+  - Balance USDC on-chain visible
+  - Alert si solde insuffisant
+  - Modal vente redesigné (style Sorare)
+  - Fichiers : BalancePayment, SellCardForm, useMarketplace
+
+- ✅ **3 Nov 20h00** : Fix détection wallet + lecture seule
+  - Correction checkMigrationRequired (oldWalletAddress)
+  - Ajout walletSyncedAt dans ProfileDto
+  - Lecture seule pour Embedded Wallets créés
+  - Fichiers : migration.service.ts, user.controller.ts, useEmbeddedWallet.ts
+
+### Octobre 2025
+
+- ✅ **30 Oct** : Marketplace Listing avec expiration
+  - Système MarketplaceService complet
+  - Expiration automatique (J+2 à J+30)
+  - Cron job quotidien
+  - Fichiers : marketplace.service.ts, marketplace.schema.ts, SellCardForm
+
+- ✅ **28 Oct** : Réorganisation documentation
+  - 171 fichiers → 15 actifs + 160 archivés
+  - Création GUIDE_GESTION_DOCUMENTATION.md
+  - Structure claire (tests/, context/, archives/)
+
+- ✅ **10 Oct** : Plan test Embedded Wallet
+  - 42 cas de test documentés
+  - Fichier : PLAN_TEST_EMBEDDED_WALLET.md
 
 ---
 
 **RAPPEL :** Mettre à jour ce fichier après CHAQUE tâche importante terminée !
 
+**Dernière révision complète :** 6 Novembre 2025

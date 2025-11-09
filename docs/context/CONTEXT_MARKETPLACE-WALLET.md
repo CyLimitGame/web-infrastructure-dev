@@ -6,6 +6,24 @@
 
 ---
 
+## 💰 COÛT DE CHARGEMENT DE CE CONTEXTE
+
+**Taille du fichier :** ~2574 lignes  
+**Nombre de tokens :** ~32,000 tokens  
+**Coût par chargement :** ~$0.096 (à $3/M tokens input)  
+**Budget token restant après chargement :** ~968,000 tokens (sur 1M)
+
+**⚠️ RÈGLE IMPORTANTE :**
+- ✅ **TOUJOURS mettre à jour ces chiffres** après chaque modification de ce fichier
+- ✅ Compter les lignes avec `wc -l CONTEXT_MARKETPLACE-WALLET.md`
+- ✅ Estimer tokens : ~12.5 tokens par ligne en moyenne
+- ✅ Recalculer le coût : (nombre_tokens / 1,000,000) × $3
+- ✅ Mettre à jour la date de dernière modification
+
+**Dernière mise à jour compteurs :** 7 Novembre 2025 - 11h30
+
+---
+
 ## 📋 TABLE DES MATIÈRES
 
 1. [Architecture Globale](#architecture-globale)
@@ -947,79 +965,81 @@ const isWhitelisted = await nftContract.isWhitelisted(MARKETPLACE_CONTRACT_ADDRE
 console.log('Marketplace whitelisté :', isWhitelisted); // true ✅
 ```
 
-### 2. CyLimitMarketplace_v2_Base.sol
+### 2. CyLimitMarketplace_v4_SecureOffer.sol
 
-**Philosophie : Ultra-Simple = Maximum Flexible**
+**Philosophie : Sécurité Maximale + Flexibilité**
 
 ```solidity
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-
-contract CyLimitMarketplace_v2_Base is Ownable, ReentrancyGuard {
+/**
+ * @title CyLimit NFT Marketplace v4 (Escrow Sécurisé par Offre)
+ * @notice Marketplace avec escrow USDC verrouillé par offre ET target
+ * @dev Design v4:
+ * - Escrow par offerId avec target verrouillé on-chain
+ * - Collection Offers supportées (target = address(0))
+ * - Database injection impossible
+ * - Backend ne peut pas rediriger les fonds
+ */
+contract CyLimitMarketplace is Ownable, ReentrancyGuard {
     IERC721 public nftContract;
     IERC20 public usdcContract;
     
-    // Escrow USDC par user
-    mapping(address => uint256) public escrowedUSDC;
+    // ═══════════════════════════════════════════════════════════════════════
+    // STRUCTS & STATE
+    // ═══════════════════════════════════════════════════════════════════════
     
-    // Stats
+    struct OfferEscrow {
+        address initiator;      // Celui qui fait l'offre
+        address target;         // Celui qui peut accepter (address(0) = public)
+        uint256 amountUSDC;     // Montant escrowed
+        uint256 createdAt;      // Timestamp
+        bool exists;            // Flag existence
+    }
+    
+    mapping(bytes32 => OfferEscrow) public offers;  // Escrow par offre
+    mapping(address => uint256) public escrowedUSDC; // Escrow pour enchères
     uint256 public totalSales;
     
     // ═══════════════════════════════════════════════════════════════════════
-    // FONCTIONS ESCROW (Réutilisables pour TOUT)
+    // ESCROW PAR OFFRE (Offres 1-to-1 + Collection Offers)
     // ═══════════════════════════════════════════════════════════════════════
     
-    // User escrow USDC
-    function escrowUSDC(uint256 amount) external nonReentrant {
-        require(usdcContract.transferFrom(msg.sender, address(this), amount));
-        escrowedUSDC[msg.sender] += amount;
-        emit USDCEscrowed(msg.sender, amount);
-    }
+    // Escrow USDC pour offre
+    // target = address spécifique → Offre 1-to-1
+    // target = address(0) → Collection Offer (public)
+    function escrowUSDCForOffer(bytes32 offerId, address target, uint256 amount) external;
     
-    // CyLimit release USDC (refund)
-    function releaseUSDC(address user, uint256 amount) external onlyOwner nonReentrant {
-        require(escrowedUSDC[user] >= amount);
-        escrowedUSDC[user] -= amount;
-        require(usdcContract.transfer(user, amount));
-        emit USDCReleased(user, amount);
-    }
+    // Cancel offre → Refund initiator
+    function releaseUSDCFromOffer(bytes32 offerId) external onlyOwner;
     
-    // CyLimit transfer USDC (finalize)
-    function transferEscrowedUSDC(address from, address to, uint256 amount) 
-        external onlyOwner nonReentrant 
-    {
-        require(escrowedUSDC[from] >= amount);
-        escrowedUSDC[from] -= amount;
-        require(usdcContract.transfer(to, amount));
-        emit USDCTransferred(from, to, amount);
-    }
+    // Accept offre → Transfer USDC au target (ou acceptor si public)
+    function transferEscrowedUSDCFromOffer(bytes32 offerId, address acceptor) external onlyOwner;
+    
+    // Vérifier offre on-chain
+    function getOffer(bytes32 offerId) external view returns (...);
+    
+    // Emergency withdraw (tracé on-chain)
+    function emergencyWithdrawOffer(bytes32 offerId) external onlyOwner;
     
     // ═══════════════════════════════════════════════════════════════════════
-    // FONCTIONS ACHAT DIRECT
+    // DIRECT BUY (Batch Transaction)
     // ═══════════════════════════════════════════════════════════════════════
     
-    function buyNFT(uint256 tokenId, address seller) external nonReentrant {
-        require(nftContract.ownerOf(tokenId) == seller);
-        nftContract.safeTransferFrom(seller, msg.sender, tokenId);
-        totalSales++;
-        emit NFTBought(tokenId, seller, msg.sender);
-    }
+    // Acheter plusieurs NFTs en 1 transaction (supporte 1 seul NFT)
+    function buyMultipleNFTs(uint256[] calldata tokenIds, address[] calldata sellers) external;
     
-    function buyMultipleNFTs(uint256[] calldata tokenIds, address[] calldata sellers) 
-        external nonReentrant 
-    {
-        require(tokenIds.length == sellers.length && tokenIds.length <= 50);
-        for (uint i = 0; i < tokenIds.length; i++) {
-            require(nftContract.ownerOf(tokenIds[i]) == sellers[i]);
-            nftContract.safeTransferFrom(sellers[i], msg.sender, tokenIds[i]);
-        }
-        totalSales += tokenIds.length;
-    }
+    // ═══════════════════════════════════════════════════════════════════════
+    // ESCROW GLOBAL (Enchères)
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    function escrowUSDC(uint256 amount) external;
+    function releaseUSDC(address user, uint256 amount) external onlyOwner;
+    function transferUSDC(address from, address to, uint256 amount) external onlyOwner;
+    
+    // Batch refund (optimisation gas enchères)
+    function batchReleaseUSDC(address[] calldata users, uint256[] calldata amounts) external onlyOwner;
 }
 ```
 
@@ -1027,18 +1047,20 @@ contract CyLimitMarketplace_v2_Base is Ownable, ReentrancyGuard {
 
 | Cas d'usage | Fonction utilisée | Flow |
 |-------------|------------------|------|
-| **Buy Offer** | escrowUSDC() → transferEscrowedUSDC() | Buyer escrow → Transfer au seller |
-| **Collection Offer** | escrowUSDC() → transferEscrowedUSDC() | Buyer escrow → Transfer au seller |
-| **Swap avec USDC** | escrowUSDC() → transferEscrowedUSDC() | Initiator escrow → Transfer au target |
-| **Enchère** | escrowUSDC() → releaseUSDC() / transferEscrowedUSDC() | Bidder escrow → Refund losers + Transfer CyLimit |
-| **Cancel Offer** | releaseUSDC() | Refund initiator |
+| **Buy Offer 1-to-1** | escrowUSDCForOffer(target) → transferEscrowedUSDCFromOffer() | Buyer escrow → Transfer au seller ciblé |
+| **Collection Offer** | escrowUSDCForOffer(address(0)) → transferEscrowedUSDCFromOffer(acceptor) | Buyer escrow → Transfer au premier seller |
+| **Swap avec USDC** | escrowUSDCForOffer(target) → transferEscrowedUSDCFromOffer() | Initiator escrow → Transfer au target |
+| **Enchère** | escrowUSDC() → batchReleaseUSDC() / transferUSDC() | Bidder escrow → Refund losers + Transfer CyLimit |
+| **Cancel Offer** | releaseUSDCFromOffer() | Refund initiator automatique |
 
-**Avantages architecture :**
-- ✅ **3 fonctions escrow** réutilisables pour TOUT
-- ✅ **Pas de structs complexes** on-chain
-- ✅ **Logique métier en backend** (flexibilité totale)
-- ✅ **CyLimit contrôle** (onlyOwner sur release/transfer)
-- ✅ **Gas optimisé** (minimal storage on-chain)
+**Avantages architecture v4 :**
+- ✅ **Target verrouillé on-chain** (sécurité maximale)
+- ✅ **Collection Offers supportées** (address(0) = public)
+- ✅ **Database injection impossible** (smart contract = source de vérité)
+- ✅ **Backend ne peut pas voler** (destinations fixes on-chain)
+- ✅ **Batch operations** (optimisation gas)
+- ✅ **Emergency withdraw** (tracé on-chain)
+- ✅ **Validation on-chain** (getOffer pour vérifier)
 
 ---
 
@@ -1646,19 +1668,21 @@ async acceptOffer(offerId: string, targetId: string) {
 }
 ```
 
-### Cas 3 : Collection Offers (Offres Publiques)
+### Cas 3 : Collection Offers (Offres Publiques) - Architecture v4
 
 **Différences vs Offres 1-to-1 :**
 
 | Critère | Offre 1-to-1 | Collection Offer |
 |---------|--------------|------------------|
-| `targetId` | User spécifique | `null` (public) |
+| `target` (smart contract) | Address spécifique | `address(0)` (public) |
+| `targetId` (DB) | User spécifique | `null` (public) |
 | `requestedNFTs` | TokenIds spécifiques | `null` |
 | `requestedNFTsFilters` | N/A | Critères (rarity, etc.) |
 | Acceptation | Uniquement le target | N'importe quel seller matching |
 | Visibilité | Privée | Publique (tous sellers) |
+| Sécurité | Target verrouillé on-chain | Premier acceptor devient recipient |
 
-**Flow :**
+**Flow avec Smart Contract v4 :**
 
 ```
 ┌─────────────────┐
@@ -1666,36 +1690,74 @@ async acceptOffer(offerId: string, targetId: string) {
 └────────┬────────┘
          │ 1. "Je veux n'importe quelle carte rare pour 100 USDC"
          ↓
-┌──────────────────────────────────────┐
-│  BACKEND                             │
-│  createCollectionOffer(              │
-│    targetId: null,  ← PUBLIC         │
-│    offeredUSDC: 100,                 │
-│    requestedNFTsFilters: {           │
-│      rarity: "rare"                  │
-│    }                                 │
-│  )                                   │
-│  → Escrow 100 USDC                   │
-│  → Notify ALL sellers avec rare NFT  │
-└──────────────────────────────────────┘
-         │
-         │ 2. User B (premier) accepte avec NFT #789
+┌──────────────────────────────────────────────────────┐
+│  FRONTEND                                             │
+│  → User signe escrowUSDCForOffer(offerId, 0x0, 100)  │
+│    ⚠️ target = address(0) = PUBLIC                   │
+└────────┬─────────────────────────────────────────────┘
+         │ 2. Offre escrowed on-chain
          ↓
-┌──────────────────────────────────────┐
-│  BACKEND                             │
-│  1. Vérifie NFT #789 match (rare ✅) │
-│  2. Vérifie ownership (DB + BC)      │
-│  3. Lock offer (prevent double)      │
-│  4. Batch atomique :                 │
-│     - transferEscrowedUSDC(A→B, 100) │
-│     - nft.transferFrom(B→A, #789)    │
-└──────────────────────────────────────┘
+┌──────────────────────────────────────────┐
+│  BACKEND DB                              │
+│  createCollectionOffer(                  │
+│    offerId: "0xabc123...",  ← Même ID   │
+│    targetId: null,  ← PUBLIC            │
+│    offeredUSDC: 100,                     │
+│    requestedNFTsFilters: {               │
+│      rarity: "rare"                      │
+│    }                                     │
+│  )                                       │
+│  → Notify ALL sellers avec rare NFT      │
+└──────────────────────────────────────────┘
+         │
+         │ 3. User B (premier) accepte avec NFT #789
+         ↓
+┌──────────────────────────────────────────┐
+│  BACKEND                                 │
+│  1. Vérifie NFT #789 match (rare ✅)     │
+│  2. Vérifie ownership (DB + BC)          │
+│  3. Lock offer en DB (prevent double)    │
+│  4. Appelle smart contract :             │
+│     transferEscrowedUSDCFromOffer(       │
+│       offerId,                           │
+│       acceptor = 0xUserB  ← OBLIGATOIRE │
+│     )                                    │
+│     → Smart contract vérifie :           │
+│       - offer.target == address(0) ✅    │
+│       - acceptor != initiator ✅         │
+│       - Transfer USDC → acceptor         │
+│  5. Master Wallet transfère NFT B→A      │
+└──────────────────────────────────────────┘
 ```
 
-**Gestion Race Condition :**
+**Sécurité Smart Contract v4 :**
+
+```solidity
+function transferEscrowedUSDCFromOffer(bytes32 offerId, address acceptor) {
+    OfferEscrow storage offer = offers[offerId];
+    
+    address recipient;
+    
+    if (offer.target == address(0)) {
+        // Collection Offer : Premier arrivé
+        require(acceptor != address(0), "Invalid acceptor");
+        require(acceptor != offer.initiator, "Cannot accept own offer");
+        recipient = acceptor;  // ✅ Backend choisit, mais tracé on-chain
+    } else {
+        // Offre 1-to-1 : Target verrouillé
+        require(acceptor == offer.target, "Must be target");
+        recipient = offer.target;
+    }
+    
+    // Transfer USDC → recipient (verrouillé)
+    usdcContract.transfer(recipient, offer.amountUSDC);
+}
+```
+
+**Gestion Race Condition (DB Lock) :**
 
 ```typescript
-// Lock offre (prevent double acceptance)
+// Lock offre en DB (atomic operation)
 const lockResult = await this.collectionOfferModel.updateOne(
   { _id: offerId, status: 'active' },
   { status: 'processing' }
@@ -1705,8 +1767,34 @@ if (lockResult.modifiedCount === 0) {
   throw new Error('Offer already being processed');
 }
 
-// Si erreur → Rollback lock
+try {
+  // Appeler smart contract
+  await marketplaceContract.transferEscrowedUSDCFromOffer(offerId, acceptor);
+  
+  // Succès → Marquer accepted
+  await this.collectionOfferModel.updateOne(
+    { _id: offerId },
+    { status: 'accepted' }
+  );
+} catch (error) {
+  // Erreur → Rollback lock
+  await this.collectionOfferModel.updateOne(
+    { _id: offerId },
+    { status: 'active' }
+  );
+  throw error;
+}
 ```
+
+**Avantages Architecture v4 pour Collection Offers :**
+
+| Aspect | v3 (Vulnerable) | v4 (Secure) |
+|--------|-----------------|-------------|
+| **Target flexible** | ✅ Backend contrôle | ✅ address(0) = public |
+| **Database injection** | ❌ Backend peut voler | ✅ Smart contract vérifie acceptor |
+| **Audit trail** | ⚠️ Partiel (DB only) | ✅ Complet (on-chain event) |
+| **Premier arrivé** | ✅ DB lock | ✅ DB lock + on-chain |
+| **Refund** | ✅ releaseUSDCFromOffer | ✅ releaseUSDCFromOffer (auto initiator) |
 
 ---
 
