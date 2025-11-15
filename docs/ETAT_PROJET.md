@@ -11,7 +11,7 @@ Point de référence unique pour comprendre où en est le projet à tout moment
 **COMMENT :**
 Consulter ce fichier AVANT toute nouvelle tâche. Mettre à jour APRÈS chaque tâche terminée.
 
-**DERNIÈRE MISE À JOUR :** 6 Novembre 2025 - 12h00
+**DERNIÈRE MISE À JOUR :** 9 Novembre 2025 - 23h00
 
 **STATUT :** Actif - Mis à jour régulièrement
 
@@ -77,7 +77,7 @@ Consulter ce fichier AVANT toute nouvelle tâche. Mettre à jour APRÈS chaque t
 - **Gas Sponsorship :** CDP Paymaster (Base)
 
 ### Infrastructure
-- **Hébergement :** AWS (⏳ migration vers Google Cloud Run planifiée)
+- **Hébergement :** AWS (🔄 migration vers Google Cloud Run en cours - configuration terminée)
 - **Storage Images NFT :** 
   - ✅ AWS S3 (`cylimit-public` - bucket existant, Europe eu-west-3)
   - 🔄 Pinata IPFS (migration en cours pour décentralisation)
@@ -166,7 +166,7 @@ Consulter ce fichier AVANT toute nouvelle tâche. Mettre à jour APRÈS chaque t
 
 ### 🏪 3. MARKETPLACE NFT
 
-**Statut :** ✅ Fonctionnel (Testnet) - Premier achat validé !
+**Statut :** ✅ Fonctionnel (Testnet) - Buy Offers testés avec succès !
 
 #### 3.1 Marché Primaire (CyLimit → Users)
 
@@ -191,20 +191,24 @@ Consulter ce fichier AVANT toute nouvelle tâche. Mettre à jour APRÈS chaque t
 - ✅ Vérification wallet obligatoire avant achat/vente
 - ✅ Affichage balance USDC on-chain
 - ✅ Modal vente (style Sorare)
+- ✅ **Buy Offers 1-to-1 (9 Nov 2025)** - Architecture v5 atomique
+  - Escrow USDC vérifié on-chain
+  - Finalisation atomique (USDC + NFT en une transaction)
+  - Target verrouillé on-chain (sécurité maximale)
+  - MongoDB schema optimisé (ObjectId, txHashEscrow)
 
 **Détails techniques :**
 - MarketplaceService complet (backend)
 - Cron job quotidien (expiration listings)
 - Marketplace whitelisté dans NFT contract
 - Fees transférées vers Smart Account CyLimit
+- Smart Contract v5 avec `finalizeOffer()` atomique
 - Voir [CONTEXT_MARKETPLACE-WALLET.md](./context/CONTEXT_MARKETPLACE-WALLET.md)
 
 **Ce qui reste :**
-- ⏳ Offres 1-to-1 (buy offers)
 - ⏳ Swaps NFT ↔ NFT
 - ⏳ Collection offers (offres publiques)
 - ⏳ Enchères avec auto-bid
-- ⏳ Tests complets achats/reventes
 
 ---
 
@@ -323,7 +327,41 @@ Consulter ce fichier AVANT toute nouvelle tâche. Mettre à jour APRÈS chaque t
 
 ## 🚀 EN DÉVELOPPEMENT
 
-### 🔄 1. Tests Automatisés E2E (Playwright)
+### 🔄 1. Migration Google Cloud Run
+
+**Statut :** Configuration terminée, prêt pour déploiement
+
+**Objectif :**
+Migrer l'infrastructure de AWS vers Google Cloud Run pour réduire les coûts de ~200-270€/mois
+
+**Ce qui est fait :**
+- ✅ Analyse infrastructure AWS (ECS, Redis, logs, coûts)
+- ✅ Dockerfiles optimisés multi-stage (Node 20, -60% taille)
+- ✅ Scripts déploiement automatisés (staging + production)
+- ✅ Configuration Cloud Scheduler (cron jobs)
+- ✅ Templates environnement (.env.cloudrun.staging)
+- ✅ Guide migration complet (100+ pages)
+- ✅ Script quickstart interactif
+
+**Ce qui reste :**
+- ⏳ Créer projet Google Cloud (manuel)
+- ⏳ Créer compte Upstash Redis gratuit
+- ⏳ Configurer Secret Manager (variables sensibles)
+- ⏳ Déployer staging et tester
+- ⏳ Déployer production + DNS
+
+**Économies attendues :**
+- AWS actuel : ~240-320€/mois
+- Cloud Run : ~35-50€/mois
+- **Économies : ~200-270€/mois** (70% de réduction)
+
+**Documents :**
+- [GUIDE_MIGRATION_GOOGLE_CLOUD_RUN.md](./migrations-cloud/GUIDE_MIGRATION_GOOGLE_CLOUD_RUN.md)
+- Scripts : `deploy-staging-user.sh`, `deploy-staging-admin.sh`, `setup-cloud-scheduler-staging.sh`
+
+---
+
+### 🔄 2. Tests Automatisés E2E (Playwright)
 
 **Statut :** En cours de finalisation
 
@@ -344,7 +382,7 @@ Consulter ce fichier AVANT toute nouvelle tâche. Mettre à jour APRÈS chaque t
 
 ---
 
-### 🔄 2. Migration Images (AWS S3 → Dual Storage)
+### 🔄 3. Migration Images (AWS S3 → Dual Storage)
 
 **Statut :** En cours
 
@@ -369,10 +407,14 @@ Consulter ce fichier AVANT toute nouvelle tâche. Mettre à jour APRÈS chaque t
 
 ### Priorité #1 : Migration Infrastructure
 
-#### Google Cloud Run
-- ⏳ Migrer backends AWS → Google Cloud Run
-- **Économies attendues :** ~300-400€/mois
-- **Timing :** Après tests Playwright validés
+#### Google Cloud Run ✅ CONFIGURATION TERMINÉE
+- ✅ Dockerfiles optimisés (multi-stage, Node 20)
+- ✅ Scripts déploiement automatisés
+- ✅ Guide migration complet (10 étapes)
+- ✅ Script quickstart interactif
+- **Économies attendues :** ~200-270€/mois
+- **Timing :** Prêt à déployer (2-3 jours staging + 1 jour production)
+- **Documents :** [GUIDE_MIGRATION_GOOGLE_CLOUD_RUN.md](./migrations-cloud/GUIDE_MIGRATION_GOOGLE_CLOUD_RUN.md)
 
 #### Firebase Auth
 - ⏳ Migrer Custom JWT → Firebase Auth
@@ -505,9 +547,9 @@ Aucun problème bloquant actuellement.
 |----------|---------|--------|--------|------|
 | **Auth** | [CONTEXT_AUTH.md](./context/CONTEXT_AUTH.md) | 683 | ~8,540 | ~$0.025 |
 | **Game** | [CONTEXT_GAME.md](./context/CONTEXT_GAME.md) | 938 | ~11,700 | ~$0.035 |
-| **Marketplace & Wallets** | [CONTEXT_MARKETPLACE-WALLET.md](./context/CONTEXT_MARKETPLACE-WALLET.md) | 2592 | ~32,000 | ~$0.096 |
+| **Marketplace & Wallets** | [CONTEXT_MARKETPLACE-WALLET.md](./context/CONTEXT_MARKETPLACE-WALLET.md) | 2688 | ~33,600 | ~$0.101 |
 
-**Total si chargement des 3 contextes :** ~52,240 tokens, ~$0.156
+**Total si chargement des 3 contextes :** ~53,840 tokens, ~$0.161
 
 ### Guides & Plans
 
@@ -638,6 +680,32 @@ Pour toute modification sur ces sujets, **charger le contexte approprié AVANT**
 
 ### Novembre 2025
 
+- ✅ **9 Nov 23h00** : Configuration migration Google Cloud Run terminée
+  - Analyse complète infrastructure AWS (ECS, Redis, logs, coûts ~240-320€/mois)
+  - Dockerfiles optimisés multi-stage (Node 20, alpine, -60% taille)
+  - Scripts déploiement automatisés (staging + production)
+  - Configuration Cloud Scheduler (4 cron jobs)
+  - Guide migration complet (10 étapes détaillées, 100+ pages)
+  - Script quickstart interactif avec couleurs et validations
+  - Templates environnement (.env.cloudrun.staging.example)
+  - Économies estimées : ~200-270€/mois (70% réduction)
+  - Fichiers créés :
+    - `cylimit-backend-develop/Dockerfile.cloudrun`
+    - `cylimit-backend-develop/deploy-staging-user.sh`
+    - `cylimit-admin-backend/Dockerfile.cloudrun`
+    - `cylimit-admin-backend/deploy-staging-admin.sh`
+    - `cylimit-admin-backend/setup-cloud-scheduler-staging.sh`
+    - `cylimit-infrastructure/docs/migrations-cloud/GUIDE_MIGRATION_GOOGLE_CLOUD_RUN.md`
+    - `cylimit-infrastructure/docs/migrations-cloud/quickstart-migration.sh`
+
+- ✅ **9 Nov 16h00** : Tests Buy Offers validés avec succès
+  - Smart Contract v5 avec `finalizeOffer()` atomique déployé
+  - Flow complet Step 1-6 testé (escrow, acceptation, finalisation)
+  - MongoDB schema corrigé (initiatorId/targetId en ObjectId, txHashEscrow ajouté)
+  - Vérification escrow on-chain avant finalisation implémentée
+  - Résolution erreurs TypeScript "Type instantiation excessively deep"
+  - Fichiers : CyLimitMarketplace_v5_SecureOffer.sol, offer.schema.ts, offer.service.ts, coinbase.service.ts, internal.controller.ts
+
 - ✅ **6 Nov 12h00** : Refonte ETAT_PROJET.md
   - Structure basée sur expérience utilisateur/admin
   - Stack technique corrigée et détaillée
@@ -694,4 +762,4 @@ Pour toute modification sur ces sujets, **charger le contexte approprié AVANT**
 
 **RAPPEL :** Mettre à jour ce fichier après CHAQUE tâche importante terminée !
 
-**Dernière révision complète :** 6 Novembre 2025
+**Dernière révision complète :** 9 Novembre 2025

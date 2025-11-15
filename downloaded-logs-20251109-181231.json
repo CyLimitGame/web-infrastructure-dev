@@ -1,0 +1,1916 @@
+[
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "authenticationInfo": {
+        "principalEmail": "contact@cylimit.com",
+        "principalSubject": "user:contact@cylimit.com",
+        "oauthInfo": {
+          "oauthClientId": "32555940559.apps.googleusercontent.com"
+        }
+      },
+      "requestMetadata": {
+        "callerIp": "2a01:e0a:32e:9ad0:cdc6:d6eb:a2c3:8f5",
+        "callerSuppliedUserAgent": "google-cloud-sdk gcloud/543.0.0 command/gcloud.run.deploy invocation-id/2daac27de5bc4b5f9295f30e0f1bfe19 environment/None environment-version/None client-os/MACOSX client-os-ver/24.3.0 client-pltf-arch/arm interactive/True from-script/True python/3.9.6 term/xterm-256color  (Macintosh; Intel Mac OS X 24.3.0),gzip(gfe)",
+        "requestAttributes": {
+          "time": "2025-11-09T17:03:42.705033Z",
+          "auth": {}
+        },
+        "destinationAttributes": {}
+      },
+      "serviceName": "run.googleapis.com",
+      "methodName": "google.cloud.run.v1.Services.CreateService",
+      "authorizationInfo": [
+        {
+          "resource": "namespaces/cylimit-400208/services/cylimit-admin-staging",
+          "permission": "run.services.create",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "namespaces/cylimit-400208/services/cylimit-admin-staging",
+          "permission": "run.services.create",
+          "granted": true,
+          "resourceAttributes": {
+            "service": "run.googleapis.com/",
+            "name": "namespaces/cylimit-400208/services/cylimit-admin-staging",
+            "type": "run.googleapis.com/Service"
+          },
+          "permissionType": "ADMIN_WRITE"
+        }
+      ],
+      "resourceName": "namespaces/cylimit-400208/services/cylimit-admin-staging",
+      "request": {
+        "service": {
+          "status": {},
+          "kind": "Service",
+          "apiVersion": "serving.knative.dev/v1",
+          "metadata": {
+            "namespace": "cylimit-400208",
+            "annotations": {
+              "run.googleapis.com/client-name": "gcloud",
+              "run.googleapis.com/client-version": "543.0.0"
+            },
+            "name": "cylimit-admin-staging"
+          },
+          "spec": {
+            "template": {
+              "metadata": {
+                "labels": {
+                  "client.knative.dev/nonce": "shafqtxovt"
+                },
+                "annotations": {
+                  "run.googleapis.com/cpu-throttling": "False",
+                  "run.googleapis.com/client-version": "543.0.0",
+                  "run.googleapis.com/client-name": "gcloud",
+                  "run.googleapis.com/startup-cpu-boost": "True",
+                  "run.googleapis.com/execution-environment": "gen2",
+                  "autoscaling.knative.dev/maxScale": "3"
+                }
+              },
+              "spec": {
+                "serviceAccountName": "cylimit-runner@cylimit-400208.iam.gserviceaccount.com",
+                "timeoutSeconds": 600,
+                "containers": [
+                  {
+                    "image": "gcr.io/cylimit-400208/admin-backend:staging-20251109-180031",
+                    "name": "",
+                    "resources": {
+                      "limits": {
+                        "cpu": "2",
+                        "memory": "2Gi"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "parent": "namespaces/cylimit-400208",
+        "@type": "type.googleapis.com/google.cloud.run.v1.CreateServiceRequest"
+      },
+      "resourceLocation": {
+        "currentLocations": [
+          "europe-west1"
+        ]
+      }
+    },
+    "insertId": "1hu09urcfd4",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "cylimit-admin-staging",
+        "configuration_name": "",
+        "project_id": "cylimit-400208",
+        "location": "europe-west1",
+        "revision_name": ""
+      }
+    },
+    "timestamp": "2025-11-09T17:03:42.139646Z",
+    "severity": "NOTICE",
+    "logName": "projects/cylimit-400208/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-11-09T17:03:43.504895941Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {
+        "code": 3,
+        "message": "Ready condition status changed to False for Service cylimit-admin-staging with message: Cloud Run does not support image 'gcr.io/cylimit-400208/admin-backend:staging-20251109-180031': Container manifest type 'application/vnd.oci.image.index.v1+json' must support amd64/linux."
+      },
+      "serviceName": "run.googleapis.com",
+      "methodName": "/Services.CreateService",
+      "resourceName": "namespaces/cylimit-400208/services/cylimit-admin-staging",
+      "response": {
+        "metadata": {
+          "name": "cylimit-admin-staging",
+          "namespace": "599672253621",
+          "selfLink": "/apis/serving.knative.dev/v1/namespaces/599672253621/services/cylimit-admin-staging",
+          "uid": "6bf866cf-1611-4c12-8d98-74ed73af8898",
+          "resourceVersion": "AAZDLGWk5tg",
+          "generation": 1,
+          "creationTimestamp": "2025-11-09T17:03:42.499022Z",
+          "labels": {
+            "cloud.googleapis.com/location": "europe-west1"
+          },
+          "annotations": {
+            "run.googleapis.com/client-name": "gcloud",
+            "run.googleapis.com/client-version": "543.0.0",
+            "serving.knative.dev/creator": "contact@cylimit.com",
+            "serving.knative.dev/lastModifier": "contact@cylimit.com",
+            "run.googleapis.com/operation-id": "c5d80a7a-9800-4b77-8fa1-2df6a8e24238",
+            "run.googleapis.com/ingress": "all",
+            "run.googleapis.com/urls": "[\"https://cylimit-admin-staging-599672253621.europe-west1.run.app\"]"
+          }
+        },
+        "apiVersion": "serving.knative.dev/v1",
+        "kind": "Service",
+        "spec": {
+          "template": {
+            "metadata": {
+              "labels": {
+                "client.knative.dev/nonce": "shafqtxovt",
+                "run.googleapis.com/startupProbeType": "Default"
+              },
+              "annotations": {
+                "autoscaling.knative.dev/maxScale": "3",
+                "run.googleapis.com/client-name": "gcloud",
+                "run.googleapis.com/client-version": "543.0.0",
+                "run.googleapis.com/execution-environment": "gen2",
+                "run.googleapis.com/cpu-throttling": "false",
+                "run.googleapis.com/startup-cpu-boost": "true"
+              }
+            },
+            "spec": {
+              "containerConcurrency": 160,
+              "timeoutSeconds": 600,
+              "serviceAccountName": "cylimit-runner@cylimit-400208.iam.gserviceaccount.com",
+              "containers": [
+                {
+                  "image": "gcr.io/cylimit-400208/admin-backend:staging-20251109-180031",
+                  "ports": [
+                    {
+                      "name": "http1",
+                      "containerPort": 3001
+                    }
+                  ],
+                  "env": [
+                    {
+                      "name": "DATABASE_URL",
+                      "value": "mongodb://root:123456@localhost:27444/cylimit_dev?authSource=admin"
+                    },
+                    {
+                      "name": "JWT_SECRET",
+                      "value": "dev-jwt-secret-user-backend-cylimit-2024"
+                    },
+                    {
+                      "name": "REDIS_URL",
+                      "value": "redis://default:AYoYAAIncDFmMGYyNmVkOWE4NzE0MTA1YmM4ZTg1ZWQ1M2I5ZGY2N3AxMzUzNTI@superb-oarfish-35352.upstash.io:6379"
+                    },
+                    {
+                      "name": "CDP_API_KEY_ID",
+                      "value": "e85dfba1-b1db-449e-9e15-9b1f8020c683 # Ex: organizations/xxx/apiKeys/yyy"
+                    },
+                    {
+                      "name": "CDP_API_KEY_SECRET",
+                      "value": "R8lI3opXTIjLKfmYjkwc1JpmcP6ptj3yrDv31fPJJvRDodDxN05OKv26gaA8D8/HY99MagGQ6fkzMg34udDH6A=="
+                    },
+                    {
+                      "name": "CDP_WALLET_SECRET",
+                      "value": "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgeuRVyS7vm1TBiOxGkc23tuDpKZ9T14JPRqhpVlg/4PShRANCAATOgj3frm+Du7ZKhbv3jb9duvHvQ9R9sQ8Be4EdBgmsVZ6hF02s8SvGl7loNmWDlSl2r3CHazdO8kxFN3uG2iOz"
+                    }
+                  ],
+                  "resources": {
+                    "limits": {
+                      "cpu": "2",
+                      "memory": "2Gi"
+                    }
+                  },
+                  "startupProbe": {
+                    "timeoutSeconds": 240,
+                    "periodSeconds": 240,
+                    "failureThreshold": 1,
+                    "tcpSocket": {
+                      "port": 3001
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "traffic": [
+            {
+              "percent": 100,
+              "latestRevision": true
+            }
+          ]
+        },
+        "status": {
+          "observedGeneration": 1,
+          "conditions": [
+            {
+              "type": "Ready",
+              "status": "False",
+              "message": "Cloud Run does not support image 'gcr.io/cylimit-400208/admin-backend:staging-20251109-180031': Container manifest type 'application/vnd.oci.image.index.v1+json' must support amd64/linux.",
+              "lastTransitionTime": "2025-11-09T17:03:43.152508Z"
+            },
+            {
+              "type": "ConfigurationsReady",
+              "status": "False",
+              "message": "Cloud Run does not support image 'gcr.io/cylimit-400208/admin-backend:staging-20251109-180031': Container manifest type 'application/vnd.oci.image.index.v1+json' must support amd64/linux.",
+              "lastTransitionTime": "2025-11-09T17:03:43.152508Z"
+            },
+            {
+              "type": "RoutesReady",
+              "status": "Unknown",
+              "message": "Initializing project for the current region.",
+              "lastTransitionTime": "2025-11-09T17:03:42.758604Z"
+            }
+          ],
+          "latestCreatedRevisionName": "cylimit-admin-staging-00001-njn"
+        },
+        "@type": "type.googleapis.com/google.cloud.run.v1.Service"
+      }
+    },
+    "insertId": "-x8m0s4c7y6",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cylimit-400208",
+        "revision_name": "",
+        "configuration_name": "",
+        "service_name": "cylimit-admin-staging",
+        "location": "europe-west1"
+      }
+    },
+    "timestamp": "2025-11-09T17:03:43.207468Z",
+    "severity": "ERROR",
+    "logName": "projects/cylimit-400208/logs/cloudaudit.googleapis.com%2Fsystem_event",
+    "receiveTimestamp": "2025-11-09T17:03:43.671280490Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "authenticationInfo": {
+        "principalEmail": "contact@cylimit.com",
+        "principalSubject": "user:contact@cylimit.com",
+        "oauthInfo": {
+          "oauthClientId": "32555940559.apps.googleusercontent.com"
+        }
+      },
+      "requestMetadata": {
+        "callerIp": "2a01:e0a:32e:9ad0:cdc6:d6eb:a2c3:8f5",
+        "callerSuppliedUserAgent": "google-cloud-sdk gcloud/543.0.0 command/gcloud.run.deploy invocation-id/3d8caa4507df47d79f45b9fdbcf41c53 environment/None environment-version/None client-os/MACOSX client-os-ver/24.3.0 client-pltf-arch/arm interactive/True from-script/True python/3.9.6 term/xterm-256color  (Macintosh; Intel Mac OS X 24.3.0),gzip(gfe)",
+        "requestAttributes": {
+          "time": "2025-11-09T17:08:45.988006Z",
+          "auth": {}
+        },
+        "destinationAttributes": {}
+      },
+      "serviceName": "run.googleapis.com",
+      "methodName": "google.cloud.run.v1.Services.ReplaceService",
+      "authorizationInfo": [
+        {
+          "resource": "namespaces/cylimit-400208/services/cylimit-admin-staging",
+          "permission": "run.services.update",
+          "granted": true,
+          "resourceAttributes": {},
+          "permissionType": "ADMIN_WRITE"
+        },
+        {
+          "resource": "namespaces/cylimit-400208/services/cylimit-admin-staging",
+          "permission": "run.services.update",
+          "granted": true,
+          "resourceAttributes": {
+            "service": "run.googleapis.com/",
+            "name": "namespaces/cylimit-400208/services/cylimit-admin-staging",
+            "type": "run.googleapis.com/Service"
+          },
+          "permissionType": "ADMIN_WRITE"
+        }
+      ],
+      "resourceName": "namespaces/cylimit-400208/services/cylimit-admin-staging",
+      "request": {
+        "service": {
+          "metadata": {
+            "namespace": "599672253621",
+            "name": "cylimit-admin-staging",
+            "selfLink": "/apis/serving.knative.dev/v1/namespaces/599672253621/services/cylimit-admin-staging",
+            "annotations": {
+              "serving.knative.dev/lastModifier": "contact@cylimit.com",
+              "run.googleapis.com/urls": "[\"https://cylimit-admin-staging-599672253621.europe-west1.run.app\"]",
+              "serving.knative.dev/creator": "contact@cylimit.com",
+              "run.googleapis.com/ingress-status": "all",
+              "run.googleapis.com/client-name": "gcloud",
+              "run.googleapis.com/ingress": "all",
+              "run.googleapis.com/client-version": "543.0.0",
+              "run.googleapis.com/operation-id": "c5d80a7a-9800-4b77-8fa1-2df6a8e24238"
+            },
+            "resourceVersion": "AAZDLGmK+vk",
+            "labels": {
+              "cloud.googleapis.com/location": "europe-west1"
+            },
+            "generation": 1,
+            "uid": "6bf866cf-1611-4c12-8d98-74ed73af8898",
+            "creationTimestamp": "2025-11-09T17:03:42.499022Z"
+          },
+          "spec": {
+            "template": {
+              "spec": {
+                "serviceAccountName": "cylimit-runner@cylimit-400208.iam.gserviceaccount.com",
+                "timeoutSeconds": 600,
+                "containerConcurrency": 160,
+                "containers": [
+                  {
+                    "image": "gcr.io/cylimit-400208/admin-backend:staging-20251109-180448",
+                    "resources": {
+                      "limits": {
+                        "cpu": "2",
+                        "memory": "2Gi"
+                      }
+                    }
+                  }
+                ]
+              },
+              "metadata": {
+                "annotations": {
+                  "run.googleapis.com/cpu-throttling": "False",
+                  "run.googleapis.com/client-name": "gcloud",
+                  "run.googleapis.com/startup-cpu-boost": "true",
+                  "run.googleapis.com/client-version": "543.0.0",
+                  "run.googleapis.com/execution-environment": "gen2",
+                  "autoscaling.knative.dev/maxScale": "3"
+                },
+                "labels": {
+                  "client.knative.dev/nonce": "ioladjckiq",
+                  "run.googleapis.com/startupProbeType": "Default"
+                }
+              }
+            },
+            "traffic": [
+              {
+                "latestRevision": true,
+                "percent": 100
+              }
+            ]
+          },
+          "apiVersion": "serving.knative.dev/v1",
+          "status": {
+            "observedGeneration": 1,
+            "latestCreatedRevisionName": "cylimit-admin-staging-00001-njn",
+            "conditions": [
+              {
+                "lastTransitionTime": "2025-11-09T17:04:48.557476Z",
+                "reason": "RevisionFailed",
+                "status": "False",
+                "type": "Ready"
+              },
+              {
+                "type": "ConfigurationsReady",
+                "status": "False",
+                "lastTransitionTime": "2025-11-09T17:03:43.152508Z"
+              },
+              {
+                "lastTransitionTime": "2025-11-09T17:04:48.557476Z",
+                "type": "RoutesReady",
+                "status": "False",
+                "reason": "RevisionFailed"
+              }
+            ]
+          },
+          "kind": "Service"
+        },
+        "@type": "type.googleapis.com/google.cloud.run.v1.ReplaceServiceRequest",
+        "name": "namespaces/cylimit-400208/services/cylimit-admin-staging"
+      },
+      "resourceLocation": {
+        "currentLocations": [
+          "europe-west1"
+        ]
+      }
+    },
+    "insertId": "1hu09urcg0d",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "revision_name": "",
+        "service_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208",
+        "configuration_name": "",
+        "location": "europe-west1"
+      }
+    },
+    "timestamp": "2025-11-09T17:08:45.260397Z",
+    "severity": "NOTICE",
+    "logName": "projects/cylimit-400208/logs/cloudaudit.googleapis.com%2Factivity",
+    "receiveTimestamp": "2025-11-09T17:08:46.835667973Z"
+  },
+  {
+    "textPayload": "Starting new instance. Reason: DEPLOYMENT_ROLLOUT - Instance started due to traffic shifting between revisions due to deployment, traffic split adjustment, or deployment health check.",
+    "insertId": "6910cad0000e08c40bee83d2",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "cylimit-admin-staging",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "project_id": "cylimit-400208",
+        "location": "europe-west1",
+        "configuration_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:36.919748Z",
+    "severity": "INFO",
+    "labels": {
+      "scaling_reason": "DEPLOYMENT_ROLLOUT",
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2025-11-09T17:09:36.924784402Z"
+  },
+  {
+    "textPayload": "🔍 env.config.js - Chargement environnement...",
+    "insertId": "6910cad300038e40955eb61f",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cylimit-400208",
+        "configuration_name": "cylimit-admin-staging",
+        "service_name": "cylimit-admin-staging",
+        "location": "europe-west1",
+        "revision_name": "cylimit-admin-staging-00002-mmj"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:39.233024Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:39.235886997Z"
+  },
+  {
+    "textPayload": "   NODE_ENV: production",
+    "insertId": "6910cad300038f29e7717ec2",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cylimit-400208",
+        "location": "europe-west1",
+        "configuration_name": "cylimit-admin-staging",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "service_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:39.233257Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:39.572529847Z"
+  },
+  {
+    "textPayload": "   __dirname: /app/dist",
+    "insertId": "6910cad300038fef9b905445",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cylimit-400208",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "location": "europe-west1",
+        "service_name": "cylimit-admin-staging",
+        "configuration_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:39.233455Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:39.572529847Z"
+  },
+  {
+    "textPayload": "   rootDir: /app",
+    "insertId": "6910cad300038ff360980aa5",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208",
+        "location": "europe-west1",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "service_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:39.233459Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:39.572529847Z"
+  },
+  {
+    "textPayload": "   Recherche: /app/.env.production.local → ❌ N'existe pas",
+    "insertId": "6910cad3000390da76c2c9be",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "project_id": "cylimit-400208",
+        "configuration_name": "cylimit-admin-staging",
+        "location": "europe-west1",
+        "service_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:39.233690Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:39.572529847Z"
+  },
+  {
+    "textPayload": "   Recherche: /app/.env.production → ❌ N'existe pas",
+    "insertId": "6910cad30003919329a1aae6",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "service_name": "cylimit-admin-staging",
+        "configuration_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208",
+        "location": "europe-west1"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:39.233875Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:39.572529847Z"
+  },
+  {
+    "textPayload": "   Recherche: /app/.env.local → ❌ N'existe pas",
+    "insertId": "6910cad3000391abc7522291",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208",
+        "location": "europe-west1",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "configuration_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:39.233899Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:39.572529847Z"
+  },
+  {
+    "textPayload": "   Recherche: /app/.env → ❌ N'existe pas",
+    "insertId": "6910cad30003933d63d7b9c2",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "europe-west1",
+        "configuration_name": "cylimit-admin-staging",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "service_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:39.234301Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:39.572529847Z"
+  },
+  {
+    "textPayload": "⚠️  No .env file found. Searched for: .env.production.local, .env.production, .env.local, .env",
+    "insertId": "6910cad3000394a54e6796b0",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "europe-west1",
+        "configuration_name": "cylimit-admin-staging",
+        "service_name": "cylimit-admin-staging",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "project_id": "cylimit-400208"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:39.234661Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstderr",
+    "receiveTimestamp": "2025-11-09T17:09:39.238914058Z"
+  },
+  {
+    "textPayload": "   Current NODE_ENV: production",
+    "insertId": "6910cad3000394af3b3f39cf",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208",
+        "configuration_name": "cylimit-admin-staging",
+        "location": "europe-west1",
+        "revision_name": "cylimit-admin-staging-00002-mmj"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:39.234671Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstderr",
+    "receiveTimestamp": "2025-11-09T17:09:39.238914058Z"
+  },
+  {
+    "textPayload": "╔════════════════════════════════════════════════════════════╗",
+    "insertId": "6910cade0002af5599d82b68",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "europe-west1",
+        "configuration_name": "cylimit-admin-staging",
+        "service_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208",
+        "revision_name": "cylimit-admin-staging-00002-mmj"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.175957Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.181356972Z"
+  },
+  {
+    "textPayload": "║   BLOCKCHAIN CONFIG - PRODUCTION (ADMIN)  ║",
+    "insertId": "6910cade0002af643a703071",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "cylimit-admin-staging",
+        "location": "europe-west1",
+        "project_id": "cylimit-400208",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "configuration_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.175972Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.181356972Z"
+  },
+  {
+    "textPayload": "╚════════════════════════════════════════════════════════════╝",
+    "insertId": "6910cade0002af6899d1426a",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "europe-west1",
+        "service_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "configuration_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.175976Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.181356972Z"
+  },
+  {
+    "textPayload": "Network           : base-mainnet",
+    "insertId": "6910cade0002af6bf699282b",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cylimit-400208",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "location": "europe-west1",
+        "configuration_name": "cylimit-admin-staging",
+        "service_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.175979Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.181356972Z"
+  },
+  {
+    "textPayload": "Chain ID          : 8453",
+    "insertId": "6910cade0002af6d44b4344a",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "europe-west1",
+        "configuration_name": "cylimit-admin-staging",
+        "service_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208",
+        "revision_name": "cylimit-admin-staging-00002-mmj"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.175981Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.181356972Z"
+  },
+  {
+    "textPayload": "RPC URL           : undefined",
+    "insertId": "6910cade0002af6fa93e6ba9",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "cylimit-admin-staging",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "service_name": "cylimit-admin-staging",
+        "location": "europe-west1",
+        "project_id": "cylimit-400208"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.175983Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.181356972Z"
+  },
+  {
+    "textPayload": "NFT Contract      : undefined",
+    "insertId": "6910cade0002af86ae32ac1e",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "europe-west1",
+        "project_id": "cylimit-400208",
+        "service_name": "cylimit-admin-staging",
+        "configuration_name": "cylimit-admin-staging",
+        "revision_name": "cylimit-admin-staging-00002-mmj"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.176006Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.181356972Z"
+  },
+  {
+    "textPayload": "Marketplace       : undefined",
+    "insertId": "6910cade0002af896bf5a785",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208",
+        "configuration_name": "cylimit-admin-staging",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "location": "europe-west1"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.176009Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.181356972Z"
+  },
+  {
+    "textPayload": "⚠️  Warning: NFT Contract address not configured",
+    "insertId": "6910cade0002b06b997db3a2",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cylimit-400208",
+        "location": "europe-west1",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "service_name": "cylimit-admin-staging",
+        "configuration_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.176235Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstderr",
+    "receiveTimestamp": "2025-11-09T17:09:50.180966570Z"
+  },
+  {
+    "textPayload": "⚠️  Warning: Marketplace Contract address not configured",
+    "insertId": "6910cade0002b0758d4c2669",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "cylimit-admin-staging",
+        "location": "europe-west1",
+        "service_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208",
+        "revision_name": "cylimit-admin-staging-00002-mmj"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.176245Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstderr",
+    "receiveTimestamp": "2025-11-09T17:09:50.180966570Z"
+  },
+  {
+    "textPayload": "USDC              : 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "insertId": "6910cade0002b31a9307ffe0",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "cylimit-admin-staging",
+        "configuration_name": "cylimit-admin-staging",
+        "location": "europe-west1",
+        "project_id": "cylimit-400208",
+        "revision_name": "cylimit-admin-staging-00002-mmj"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.176922Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "Master Wallet     : undefined",
+    "insertId": "6910cade0002b31f764b63d5",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "location": "europe-west1",
+        "configuration_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208",
+        "service_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.176927Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "Paymaster         : Disabled ❌",
+    "insertId": "6910cade0002b3228ed7ed0f",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cylimit-400208",
+        "location": "europe-west1",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "configuration_name": "cylimit-admin-staging",
+        "service_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.176930Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "Explorer          : https://basescan.org",
+    "insertId": "6910cade0002b3261c889f05",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "cylimit-admin-staging",
+        "configuration_name": "cylimit-admin-staging",
+        "location": "europe-west1",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "project_id": "cylimit-400208"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.176934Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[NestFactory] \u001b[39m\u001b[32mStarting Nest application...\u001b[39m",
+    "insertId": "6910cade00055d19989b1e21",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208",
+        "location": "europe-west1",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "service_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.351513Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[CoinbaseService] \u001b[39m\u001b[32m✅ CDP Client v2 initialisé\u001b[39m",
+    "insertId": "6910cade0006a3f18d05ec6e",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "cylimit-admin-staging",
+        "service_name": "cylimit-admin-staging",
+        "location": "europe-west1",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "project_id": "cylimit-400208"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.435185Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[CoinbaseService] \u001b[39m\u001b[32m   Network: base-mainnet\u001b[39m",
+    "insertId": "6910cade0006a3fda46a8452",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208",
+        "location": "europe-west1",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "service_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.435197Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[CoinbaseService] \u001b[39m\u001b[32m   Master Wallet: undefined\u001b[39m",
+    "insertId": "6910cade0006afc0ae380dd1",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "europe-west1",
+        "project_id": "cylimit-400208",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "service_name": "cylimit-admin-staging",
+        "configuration_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.438208Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[ConfigLoader] \u001b[39m\u001b[32mEnvironment: production\u001b[39m",
+    "insertId": "6910cade0006afc8d69ec36c",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208",
+        "location": "europe-west1",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "configuration_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.438216Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[InstanceLoader] \u001b[39m\u001b[32mMongooseModule dependencies initialized\u001b[39m\u001b[38;5;3m +14ms\u001b[39m",
+    "insertId": "6910cade0006e6c0962c24e1",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cylimit-400208",
+        "location": "europe-west1",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "configuration_name": "cylimit-admin-staging",
+        "service_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.452288Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[InstanceLoader] \u001b[39m\u001b[32mMailerModule dependencies initialized\u001b[39m\u001b[38;5;3m +1ms\u001b[39m",
+    "insertId": "6910cade0006e777332cfc20",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "europe-west1",
+        "project_id": "cylimit-400208",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "service_name": "cylimit-admin-staging",
+        "configuration_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.452471Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[InstanceLoader] \u001b[39m\u001b[32mCoinbaseModule dependencies initialized\u001b[39m\u001b[38;5;3m +0ms\u001b[39m",
+    "insertId": "6910cade0006e77c6eb8d071",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "cylimit-admin-staging",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "location": "europe-west1",
+        "configuration_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.452476Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[InstanceLoader] \u001b[39m\u001b[32mMongooseModule dependencies initialized\u001b[39m\u001b[38;5;3m +0ms\u001b[39m",
+    "insertId": "6910cade0006e8e5bb80a802",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "europe-west1",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "service_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208",
+        "configuration_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.452837Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[InstanceLoader] \u001b[39m\u001b[32mHttpModule dependencies initialized\u001b[39m\u001b[38;5;3m +3ms\u001b[39m",
+    "insertId": "6910cade0006f46e5c9bf0d0",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cylimit-400208",
+        "service_name": "cylimit-admin-staging",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "configuration_name": "cylimit-admin-staging",
+        "location": "europe-west1"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.455790Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[InstanceLoader] \u001b[39m\u001b[32mHttpModule dependencies initialized\u001b[39m\u001b[38;5;3m +0ms\u001b[39m",
+    "insertId": "6910cade0006f4ce61950a04",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "cylimit-admin-staging",
+        "configuration_name": "cylimit-admin-staging",
+        "location": "europe-west1",
+        "project_id": "cylimit-400208",
+        "revision_name": "cylimit-admin-staging-00002-mmj"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.455886Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[InstanceLoader] \u001b[39m\u001b[32mHttpModule dependencies initialized\u001b[39m\u001b[38;5;3m +0ms\u001b[39m",
+    "insertId": "6910cade0006f5bab618a663",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cylimit-400208",
+        "location": "europe-west1",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "service_name": "cylimit-admin-staging",
+        "configuration_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.456122Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[InstanceLoader] \u001b[39m\u001b[32mHttpModule dependencies initialized\u001b[39m\u001b[38;5;3m +1ms\u001b[39m",
+    "insertId": "6910cade0006f70fd3ec14b4",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cylimit-400208",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "configuration_name": "cylimit-admin-staging",
+        "service_name": "cylimit-admin-staging",
+        "location": "europe-west1"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.456463Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[InstanceLoader] \u001b[39m\u001b[32mHttpModule dependencies initialized\u001b[39m\u001b[38;5;3m +0ms\u001b[39m",
+    "insertId": "6910cade0006f7c488d39080",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "europe-west1",
+        "configuration_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "service_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.456644Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[InstanceLoader] \u001b[39m\u001b[32mConfigHostModule dependencies initialized\u001b[39m\u001b[38;5;3m +2ms\u001b[39m",
+    "insertId": "6910cade0007009ef8143b11",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "cylimit-admin-staging",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "project_id": "cylimit-400208",
+        "configuration_name": "cylimit-admin-staging",
+        "location": "europe-west1"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.458910Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[InstanceLoader] \u001b[39m\u001b[32mJwtModule dependencies initialized\u001b[39m\u001b[38;5;3m +1ms\u001b[39m",
+    "insertId": "6910cade0007039999c98554",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "service_name": "cylimit-admin-staging",
+        "configuration_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208",
+        "location": "europe-west1"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.459673Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[InstanceLoader] \u001b[39m\u001b[32mDiscoveryModule dependencies initialized\u001b[39m\u001b[38;5;3m +0ms\u001b[39m",
+    "insertId": "6910cade000703bc6f293d5c",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cylimit-400208",
+        "service_name": "cylimit-admin-staging",
+        "location": "europe-west1",
+        "configuration_name": "cylimit-admin-staging",
+        "revision_name": "cylimit-admin-staging-00002-mmj"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.459708Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[InstanceLoader] \u001b[39m\u001b[32mAppModule dependencies initialized\u001b[39m\u001b[38;5;3m +1ms\u001b[39m",
+    "insertId": "6910cade00070c106ac3db11",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cylimit-400208",
+        "configuration_name": "cylimit-admin-staging",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "location": "europe-west1",
+        "service_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.461840Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[InstanceLoader] \u001b[39m\u001b[32mInternalModule dependencies initialized\u001b[39m\u001b[38;5;3m +1ms\u001b[39m",
+    "insertId": "6910cade00070c16f4cddd90",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208",
+        "location": "europe-west1",
+        "configuration_name": "cylimit-admin-staging",
+        "revision_name": "cylimit-admin-staging-00002-mmj"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.461846Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[InstanceLoader] \u001b[39m\u001b[32mCommonModule dependencies initialized\u001b[39m\u001b[38;5;3m +0ms\u001b[39m",
+    "insertId": "6910cade00070c37e4ba723f",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cylimit-400208",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "configuration_name": "cylimit-admin-staging",
+        "location": "europe-west1",
+        "service_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.461879Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[InstanceLoader] \u001b[39m\u001b[32mConfigModule dependencies initialized\u001b[39m\u001b[38;5;3m +0ms\u001b[39m",
+    "insertId": "6910cade00070c3a4da2de32",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "cylimit-admin-staging",
+        "location": "europe-west1",
+        "project_id": "cylimit-400208",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "service_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.461882Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[InstanceLoader] \u001b[39m\u001b[32mConfigModule dependencies initialized\u001b[39m\u001b[38;5;3m +0ms\u001b[39m",
+    "insertId": "6910cade00070c46dd1e3913",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "project_id": "cylimit-400208",
+        "service_name": "cylimit-admin-staging",
+        "location": "europe-west1",
+        "configuration_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.461894Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[CoinbaseTransactionService] \u001b[39m\u001b[32m✅ CDP SDK v2 configuré pour transactions\u001b[39m",
+    "insertId": "6910cade00071c4a9e0d6481",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "cylimit-admin-staging",
+        "location": "europe-west1",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "configuration_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.465994Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[CoinbaseTransactionService] \u001b[39m\u001b[32m   Network: base-sepolia\u001b[39m",
+    "insertId": "6910cade00071c5470d7f646",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "europe-west1",
+        "project_id": "cylimit-400208",
+        "service_name": "cylimit-admin-staging",
+        "configuration_name": "cylimit-admin-staging",
+        "revision_name": "cylimit-admin-staging-00002-mmj"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.466004Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[33m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[33m   WARN\u001b[39m \u001b[38;5;3m[CoinbaseApiService] \u001b[39m\u001b[33m⚠️  Coinbase API Keys non configurées. Service désactivé.\u001b[39m",
+    "insertId": "6910cade00071d752c3188d7",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cylimit-400208",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "service_name": "cylimit-admin-staging",
+        "location": "europe-west1",
+        "configuration_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.466293Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[InstanceLoader] \u001b[39m\u001b[32mEventEmitterModule dependencies initialized\u001b[39m\u001b[38;5;3m +0ms\u001b[39m",
+    "insertId": "6910cade00072024c2e596e8",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "service_name": "cylimit-admin-staging",
+        "configuration_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208",
+        "location": "europe-west1",
+        "revision_name": "cylimit-admin-staging-00002-mmj"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.466980Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[InstanceLoader] \u001b[39m\u001b[32mBullModule dependencies initialized\u001b[39m\u001b[38;5;3m +0ms\u001b[39m",
+    "insertId": "6910cade0007202c30bf1c89",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cylimit-400208",
+        "location": "europe-west1",
+        "service_name": "cylimit-admin-staging",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "configuration_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.466988Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[32m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[32m    LOG\u001b[39m \u001b[38;5;3m[InstanceLoader] \u001b[39m\u001b[32mScheduleModule dependencies initialized\u001b[39m\u001b[38;5;3m +0ms\u001b[39m",
+    "insertId": "6910cade000720afc7b3b3cd",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "project_id": "cylimit-400208",
+        "location": "europe-west1",
+        "service_name": "cylimit-admin-staging",
+        "configuration_name": "cylimit-admin-staging",
+        "revision_name": "cylimit-admin-staging-00002-mmj"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.467119Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2025-11-09T17:09:50.514925103Z"
+  },
+  {
+    "textPayload": "\u001b[31m[Nest] 9  - \u001b[39m11/09/2025, 5:09:50 PM \u001b[31m  ERROR\u001b[39m \u001b[38;5;3m[ExceptionHandler] \u001b[39m\u001b[31mJwtStrategy requires a secret or key\u001b[39m",
+    "insertId": "6910cade0007a1b57e0b9621",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "cylimit-admin-staging",
+        "location": "europe-west1",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "project_id": "cylimit-400208",
+        "service_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.500149Z",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstderr",
+    "receiveTimestamp": "2025-11-09T17:09:50.512818628Z"
+  },
+  {
+    "textPayload": "Container called exit(1).",
+    "insertId": "6910cade0008e4e3dfb69603",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "europe-west1",
+        "service_name": "cylimit-admin-staging",
+        "configuration_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208",
+        "revision_name": "cylimit-admin-staging-00002-mmj"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.582770Z",
+    "severity": "WARNING",
+    "labels": {
+      "container_name": "admin-backend-1",
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2025-11-09T17:09:50.585921944Z"
+  },
+  {
+    "textPayload": "TypeError: JwtStrategy requires a secret or key\n    at new JwtStrategy (/app/node_modules/passport-jwt/lib/strategy.js:45:15)\n    at new MixinStrategy (/app/node_modules/@nestjs/passport/dist/passport/passport.strategy.js:32:13)\n    at new JwtAdminStrategy (/app/dist/main.js:48562:9)\n    at Injector.instantiateClass (/app/node_modules/@nestjs/core/injector/injector.js:351:19)\n    at callback (/app/node_modules/@nestjs/core/injector/injector.js:56:45)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async Injector.resolveConstructorParams (/app/node_modules/@nestjs/core/injector/injector.js:136:24)\n    at async Injector.loadInstance (/app/node_modules/@nestjs/core/injector/injector.js:61:13)\n    at async Injector.loadProvider (/app/node_modules/@nestjs/core/injector/injector.js:88:9)\n    at async /app/node_modules/@nestjs/core/injector/instance-loader.js:56:13",
+    "insertId": "6910cade0008e520d640223c",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "location": "europe-west1",
+        "project_id": "cylimit-400208",
+        "configuration_name": "cylimit-admin-staging",
+        "service_name": "cylimit-admin-staging"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:50.582944Z",
+    "severity": "ERROR",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fstderr",
+    "receiveTimestamp": "2025-11-09T17:09:50.847093522Z",
+    "errorGroups": [
+      {
+        "id": "CJDbuoHehYKqWg"
+      }
+    ]
+  },
+  {
+    "textPayload": "Default STARTUP TCP probe failed 1 time consecutively for container \"admin-backend-1\" on port 3001. The instance was not started.\nConnection failed with status CANCELLED.",
+    "insertId": "6910cadf000ea7cee2948911",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "location": "europe-west1",
+        "project_id": "cylimit-400208",
+        "configuration_name": "cylimit-admin-staging",
+        "service_name": "cylimit-admin-staging",
+        "revision_name": "cylimit-admin-staging-00002-mmj"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:51.960462Z",
+    "severity": "ERROR",
+    "labels": {
+      "instanceId": "00147782968c377eaa5e70ff5b97523a9c2926a224448a48c8a84f1e9fb6dd4b6602cfce8c0a6d9d6efd2b539543ea5dbd34f4337a3dba8cba6624126c2524f19ed78c7cb78c6c9dbeb222611ecb"
+    },
+    "logName": "projects/cylimit-400208/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2025-11-09T17:09:52.258496194Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {
+        "code": 9,
+        "message": "Ready condition status changed to False for Revision cylimit-admin-staging-00002-mmj with message: The user-provided container failed to start and listen on the port defined provided by the PORT=3001 environment variable within the allocated timeout. This can happen when the container port is misconfigured or if the timeout is too short. The health check timeout can be extended. Logs for this revision might contain more information.\n\nLogs URL: https://console.cloud.google.com/logs/viewer?project=cylimit-400208&resource=cloud_run_revision/service_name/cylimit-admin-staging/revision_name/cylimit-admin-staging-00002-mmj&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22cylimit-admin-staging%22%0Aresource.labels.revision_name%3D%22cylimit-admin-staging-00002-mmj%22 \nFor more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start"
+      },
+      "serviceName": "run.googleapis.com",
+      "methodName": "/Services.ReplaceService",
+      "resourceName": "namespaces/cylimit-400208/revisions/cylimit-admin-staging-00002-mmj",
+      "response": {
+        "metadata": {
+          "name": "cylimit-admin-staging-00002-mmj",
+          "namespace": "599672253621",
+          "selfLink": "/apis/serving.knative.dev/v1/namespaces/599672253621/revisions/cylimit-admin-staging-00002-mmj",
+          "uid": "ca797cca-0bde-426b-8df8-6d7333a4e1b5",
+          "resourceVersion": "AAZDLHuf37g",
+          "generation": 1,
+          "creationTimestamp": "2025-11-09T17:08:46.039396Z",
+          "labels": {
+            "client.knative.dev/nonce": "ioladjckiq",
+            "serving.knative.dev/configuration": "cylimit-admin-staging",
+            "serving.knative.dev/configurationGeneration": "2",
+            "serving.knative.dev/service": "cylimit-admin-staging",
+            "serving.knative.dev/serviceUid": "6bf866cf-1611-4c12-8d98-74ed73af8898",
+            "serving.knative.dev/route": "cylimit-admin-staging",
+            "cloud.googleapis.com/location": "europe-west1",
+            "run.googleapis.com/startupProbeType": "Default"
+          },
+          "annotations": {
+            "autoscaling.knative.dev/maxScale": "3",
+            "run.googleapis.com/client-name": "gcloud",
+            "run.googleapis.com/client-version": "543.0.0",
+            "run.googleapis.com/execution-environment": "gen2",
+            "serving.knative.dev/creator": "contact@cylimit.com",
+            "run.googleapis.com/operation-id": "b270c56c-66a3-45c3-8895-8c11d33e12f3",
+            "run.googleapis.com/cpu-throttling": "false",
+            "run.googleapis.com/startup-cpu-boost": "true"
+          },
+          "ownerReferences": [
+            {
+              "kind": "Configuration",
+              "name": "cylimit-admin-staging",
+              "uid": "0bc063e8-eb08-44c8-b8cb-954667d23d81",
+              "apiVersion": "serving.knative.dev/v1",
+              "controller": true,
+              "blockOwnerDeletion": true
+            }
+          ]
+        },
+        "apiVersion": "serving.knative.dev/v1",
+        "kind": "Revision",
+        "spec": {
+          "containerConcurrency": 160,
+          "timeoutSeconds": 600,
+          "serviceAccountName": "cylimit-runner@cylimit-400208.iam.gserviceaccount.com",
+          "containers": [
+            {
+              "name": "admin-backend-1",
+              "image": "gcr.io/cylimit-400208/admin-backend@sha256:474f2dffec4542e0fa9a15138f1388635c5125c6f5b02b56945587e585cebca5",
+              "ports": [
+                {
+                  "name": "http1",
+                  "containerPort": 3001
+                }
+              ],
+              "env": [
+                {
+                  "name": "DATABASE_URL",
+                  "value": "mongodb://root:123456@localhost:27444/cylimit_dev?authSource=admin"
+                },
+                {
+                  "name": "JWT_SECRET",
+                  "value": "dev-jwt-secret-user-backend-cylimit-2024"
+                },
+                {
+                  "name": "REDIS_URL",
+                  "value": "redis://default:AYoYAAIncDFmMGYyNmVkOWE4NzE0MTA1YmM4ZTg1ZWQ1M2I5ZGY2N3AxMzUzNTI@superb-oarfish-35352.upstash.io:6379"
+                },
+                {
+                  "name": "CDP_API_KEY_ID",
+                  "value": "e85dfba1-b1db-449e-9e15-9b1f8020c683 # Ex: organizations/xxx/apiKeys/yyy"
+                },
+                {
+                  "name": "CDP_API_KEY_SECRET",
+                  "value": "R8lI3opXTIjLKfmYjkwc1JpmcP6ptj3yrDv31fPJJvRDodDxN05OKv26gaA8D8/HY99MagGQ6fkzMg34udDH6A=="
+                },
+                {
+                  "name": "CDP_WALLET_SECRET",
+                  "value": "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgeuRVyS7vm1TBiOxGkc23tuDpKZ9T14JPRqhpVlg/4PShRANCAATOgj3frm+Du7ZKhbv3jb9duvHvQ9R9sQ8Be4EdBgmsVZ6hF02s8SvGl7loNmWDlSl2r3CHazdO8kxFN3uG2iOz"
+                }
+              ],
+              "resources": {
+                "limits": {
+                  "cpu": "2",
+                  "memory": "2Gi"
+                }
+              },
+              "startupProbe": {
+                "timeoutSeconds": 240,
+                "periodSeconds": 240,
+                "failureThreshold": 1,
+                "tcpSocket": {
+                  "port": 3001
+                }
+              }
+            }
+          ]
+        },
+        "status": {
+          "observedGeneration": 1,
+          "conditions": [
+            {
+              "type": "Ready",
+              "status": "False",
+              "reason": "HealthCheckContainerError",
+              "message": "The user-provided container failed to start and listen on the port defined provided by the PORT=3001 environment variable within the allocated timeout. This can happen when the container port is misconfigured or if the timeout is too short. The health check timeout can be extended. Logs for this revision might contain more information.\n\nLogs URL: https://console.cloud.google.com/logs/viewer?project=cylimit-400208&resource=cloud_run_revision/service_name/cylimit-admin-staging/revision_name/cylimit-admin-staging-00002-mmj&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22cylimit-admin-staging%22%0Aresource.labels.revision_name%3D%22cylimit-admin-staging-00002-mmj%22 \nFor more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start",
+              "lastTransitionTime": "2025-11-09T17:09:51.961016Z"
+            },
+            {
+              "type": "ContainerHealthy",
+              "status": "False",
+              "reason": "HealthCheckContainerError",
+              "message": "The user-provided container failed to start and listen on the port defined provided by the PORT=3001 environment variable within the allocated timeout. This can happen when the container port is misconfigured or if the timeout is too short. The health check timeout can be extended. Logs for this revision might contain more information.\n\nLogs URL: https://console.cloud.google.com/logs/viewer?project=cylimit-400208&resource=cloud_run_revision/service_name/cylimit-admin-staging/revision_name/cylimit-admin-staging-00002-mmj&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22cylimit-admin-staging%22%0Aresource.labels.revision_name%3D%22cylimit-admin-staging-00002-mmj%22 \nFor more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start",
+              "lastTransitionTime": "2025-11-09T17:09:51.961016Z"
+            },
+            {
+              "type": "ContainerReady",
+              "status": "True",
+              "message": "Container image import completed in 48.16s.",
+              "lastTransitionTime": "2025-11-09T17:09:35.459050Z"
+            },
+            {
+              "type": "ResourcesAvailable",
+              "status": "True",
+              "message": "Provisioning imported containers completed in 1.38s. Checking container health. This will wait for up to 4m for the configured startup probe, including an initial delay of 0s.",
+              "lastTransitionTime": "2025-11-09T17:09:36.839003Z"
+            },
+            {
+              "type": "Retry",
+              "status": "True",
+              "reason": "ImmediateRetry",
+              "message": "System will retry after 0:00:00 from lastTransitionTime for attempt 0.",
+              "lastTransitionTime": "2025-11-09T17:09:36.839003Z",
+              "severity": "Info"
+            }
+          ],
+          "logUrl": "https://console.cloud.google.com/logs/viewer?project=cylimit-400208&resource=cloud_run_revision/service_name/cylimit-admin-staging/revision_name/cylimit-admin-staging-00002-mmj&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22cylimit-admin-staging%22%0Aresource.labels.revision_name%3D%22cylimit-admin-staging-00002-mmj%22",
+          "imageDigest": "gcr.io/cylimit-400208/admin-backend@sha256:474f2dffec4542e0fa9a15138f1388635c5125c6f5b02b56945587e585cebca5",
+          "containerStatuses": [
+            {
+              "name": "admin-backend-1",
+              "imageDigest": "gcr.io/cylimit-400208/admin-backend@sha256:474f2dffec4542e0fa9a15138f1388635c5125c6f5b02b56945587e585cebca5"
+            }
+          ]
+        },
+        "@type": "type.googleapis.com/google.cloud.run.v1.Revision"
+      }
+    },
+    "insertId": "-85t22c76s",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "configuration_name": "cylimit-admin-staging",
+        "location": "europe-west1",
+        "revision_name": "cylimit-admin-staging-00002-mmj",
+        "service_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208"
+      }
+    },
+    "timestamp": "2025-11-09T17:09:51.973460Z",
+    "severity": "ERROR",
+    "logName": "projects/cylimit-400208/logs/cloudaudit.googleapis.com%2Fsystem_event",
+    "receiveTimestamp": "2025-11-09T17:09:52.044486532Z"
+  },
+  {
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "status": {
+        "code": 9,
+        "message": "Ready condition status changed to False for Service cylimit-admin-staging with message: The user-provided container failed to start and listen on the port defined provided by the PORT=3001 environment variable within the allocated timeout. This can happen when the container port is misconfigured or if the timeout is too short. The health check timeout can be extended. Logs for this revision might contain more information.\n\nLogs URL: https://console.cloud.google.com/logs/viewer?project=cylimit-400208&resource=cloud_run_revision/service_name/cylimit-admin-staging/revision_name/cylimit-admin-staging-00002-mmj&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22cylimit-admin-staging%22%0Aresource.labels.revision_name%3D%22cylimit-admin-staging-00002-mmj%22 \nFor more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start"
+      },
+      "serviceName": "run.googleapis.com",
+      "methodName": "/Services.ReplaceService",
+      "resourceName": "namespaces/cylimit-400208/services/cylimit-admin-staging",
+      "response": {
+        "metadata": {
+          "name": "cylimit-admin-staging",
+          "namespace": "599672253621",
+          "selfLink": "/apis/serving.knative.dev/v1/namespaces/599672253621/services/cylimit-admin-staging",
+          "uid": "6bf866cf-1611-4c12-8d98-74ed73af8898",
+          "resourceVersion": "AAZDLHuhCBQ",
+          "generation": 2,
+          "creationTimestamp": "2025-11-09T17:03:42.499022Z",
+          "labels": {
+            "cloud.googleapis.com/location": "europe-west1"
+          },
+          "annotations": {
+            "serving.knative.dev/creator": "contact@cylimit.com",
+            "serving.knative.dev/lastModifier": "contact@cylimit.com",
+            "run.googleapis.com/client-name": "gcloud",
+            "run.googleapis.com/client-version": "543.0.0",
+            "run.googleapis.com/operation-id": "b270c56c-66a3-45c3-8895-8c11d33e12f3",
+            "run.googleapis.com/ingress": "all",
+            "run.googleapis.com/ingress-status": "all",
+            "run.googleapis.com/urls": "[\"https://cylimit-admin-staging-599672253621.europe-west1.run.app\"]"
+          }
+        },
+        "apiVersion": "serving.knative.dev/v1",
+        "kind": "Service",
+        "spec": {
+          "template": {
+            "metadata": {
+              "labels": {
+                "client.knative.dev/nonce": "ioladjckiq",
+                "run.googleapis.com/startupProbeType": "Default"
+              },
+              "annotations": {
+                "autoscaling.knative.dev/maxScale": "3",
+                "run.googleapis.com/client-name": "gcloud",
+                "run.googleapis.com/client-version": "543.0.0",
+                "run.googleapis.com/execution-environment": "gen2",
+                "run.googleapis.com/cpu-throttling": "false",
+                "run.googleapis.com/startup-cpu-boost": "true"
+              }
+            },
+            "spec": {
+              "containerConcurrency": 160,
+              "timeoutSeconds": 600,
+              "serviceAccountName": "cylimit-runner@cylimit-400208.iam.gserviceaccount.com",
+              "containers": [
+                {
+                  "image": "gcr.io/cylimit-400208/admin-backend:staging-20251109-180448",
+                  "ports": [
+                    {
+                      "name": "http1",
+                      "containerPort": 3001
+                    }
+                  ],
+                  "env": [
+                    {
+                      "name": "DATABASE_URL",
+                      "value": "mongodb://root:123456@localhost:27444/cylimit_dev?authSource=admin"
+                    },
+                    {
+                      "name": "JWT_SECRET",
+                      "value": "dev-jwt-secret-user-backend-cylimit-2024"
+                    },
+                    {
+                      "name": "REDIS_URL",
+                      "value": "redis://default:AYoYAAIncDFmMGYyNmVkOWE4NzE0MTA1YmM4ZTg1ZWQ1M2I5ZGY2N3AxMzUzNTI@superb-oarfish-35352.upstash.io:6379"
+                    },
+                    {
+                      "name": "CDP_API_KEY_ID",
+                      "value": "e85dfba1-b1db-449e-9e15-9b1f8020c683 # Ex: organizations/xxx/apiKeys/yyy"
+                    },
+                    {
+                      "name": "CDP_API_KEY_SECRET",
+                      "value": "R8lI3opXTIjLKfmYjkwc1JpmcP6ptj3yrDv31fPJJvRDodDxN05OKv26gaA8D8/HY99MagGQ6fkzMg34udDH6A=="
+                    },
+                    {
+                      "name": "CDP_WALLET_SECRET",
+                      "value": "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgeuRVyS7vm1TBiOxGkc23tuDpKZ9T14JPRqhpVlg/4PShRANCAATOgj3frm+Du7ZKhbv3jb9duvHvQ9R9sQ8Be4EdBgmsVZ6hF02s8SvGl7loNmWDlSl2r3CHazdO8kxFN3uG2iOz"
+                    }
+                  ],
+                  "resources": {
+                    "limits": {
+                      "cpu": "2",
+                      "memory": "2Gi"
+                    }
+                  },
+                  "startupProbe": {
+                    "timeoutSeconds": 240,
+                    "periodSeconds": 240,
+                    "failureThreshold": 1,
+                    "tcpSocket": {
+                      "port": 3001
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "traffic": [
+            {
+              "percent": 100,
+              "latestRevision": true
+            }
+          ]
+        },
+        "status": {
+          "observedGeneration": 2,
+          "conditions": [
+            {
+              "type": "Ready",
+              "status": "False",
+              "reason": "HealthCheckContainerError",
+              "message": "The user-provided container failed to start and listen on the port defined provided by the PORT=3001 environment variable within the allocated timeout. This can happen when the container port is misconfigured or if the timeout is too short. The health check timeout can be extended. Logs for this revision might contain more information.\n\nLogs URL: https://console.cloud.google.com/logs/viewer?project=cylimit-400208&resource=cloud_run_revision/service_name/cylimit-admin-staging/revision_name/cylimit-admin-staging-00002-mmj&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22cylimit-admin-staging%22%0Aresource.labels.revision_name%3D%22cylimit-admin-staging-00002-mmj%22 \nFor more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start",
+              "lastTransitionTime": "2025-11-09T17:09:52.000537Z"
+            },
+            {
+              "type": "ConfigurationsReady",
+              "status": "False",
+              "reason": "HealthCheckContainerError",
+              "message": "The user-provided container failed to start and listen on the port defined provided by the PORT=3001 environment variable within the allocated timeout. This can happen when the container port is misconfigured or if the timeout is too short. The health check timeout can be extended. Logs for this revision might contain more information.\n\nLogs URL: https://console.cloud.google.com/logs/viewer?project=cylimit-400208&resource=cloud_run_revision/service_name/cylimit-admin-staging/revision_name/cylimit-admin-staging-00002-mmj&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22cylimit-admin-staging%22%0Aresource.labels.revision_name%3D%22cylimit-admin-staging-00002-mmj%22 \nFor more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start",
+              "lastTransitionTime": "2025-11-09T17:09:52.000537Z"
+            },
+            {
+              "type": "RoutesReady",
+              "status": "Unknown",
+              "message": "Provisioning revision instances to receive traffic.",
+              "lastTransitionTime": "2025-11-09T17:09:35.560209Z"
+            }
+          ],
+          "latestCreatedRevisionName": "cylimit-admin-staging-00002-mmj"
+        },
+        "@type": "type.googleapis.com/google.cloud.run.v1.Service"
+      }
+    },
+    "insertId": "in04ddc508",
+    "resource": {
+      "type": "cloud_run_revision",
+      "labels": {
+        "revision_name": "",
+        "location": "europe-west1",
+        "service_name": "cylimit-admin-staging",
+        "project_id": "cylimit-400208",
+        "configuration_name": ""
+      }
+    },
+    "timestamp": "2025-11-09T17:09:52.048519Z",
+    "severity": "ERROR",
+    "logName": "projects/cylimit-400208/logs/cloudaudit.googleapis.com%2Fsystem_event",
+    "receiveTimestamp": "2025-11-09T17:09:52.521499006Z"
+  }
+]

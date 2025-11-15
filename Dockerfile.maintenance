@@ -1,0 +1,30 @@
+# ═══════════════════════════════════════════════════════════
+# DOCKERFILE PAGE MAINTENANCE - CYLIMIT
+# ═══════════════════════════════════════════════════════════
+# 
+# OBJECTIF :
+# Servir une page HTML statique de maintenance via nginx
+#
+# POURQUOI :
+# - Afficher une page élégante pendant migration
+# - Informer utilisateurs de la maintenance
+# - Image ultra-légère (<10MB)
+#
+# COMMENT :
+# docker build -f Dockerfile.maintenance -t maintenance:latest .
+# ═══════════════════════════════════════════════════════════
+
+FROM nginx:alpine
+
+# Copier la page HTML vers le dossier nginx
+COPY maintenance/index.html /usr/share/nginx/html/index.html
+
+# Copier configuration nginx (optionnel, si besoin de custom)
+# COPY maintenance/nginx.conf /etc/nginx/nginx.conf
+
+# Exposer port 80
+EXPOSE 80
+
+# Nginx démarre automatiquement avec l'image alpine
+
+

@@ -1,17 +1,17 @@
 # 🎯 VISION COMPLÈTE - WALLETS, NFT, MARKETPLACE & FLOWS CYLIMIT
 
-**Date :** 5 Novembre 2025  
-**Version :** 2.0 - Architecture Complète et Définitive  
+**Date :** 9 Novembre 2025  
+**Version :** 2.1 - Architecture v5 Atomique + Tests Validés  
 **Objectif :** Document de référence unique pour la compréhension complète du système
 
 ---
 
 ## 💰 COÛT DE CHARGEMENT DE CE CONTEXTE
 
-**Taille du fichier :** ~2574 lignes  
-**Nombre de tokens :** ~32,000 tokens  
-**Coût par chargement :** ~$0.096 (à $3/M tokens input)  
-**Budget token restant après chargement :** ~968,000 tokens (sur 1M)
+**Taille du fichier :** ~2662 lignes  
+**Nombre de tokens :** ~33,275 tokens  
+**Coût par chargement :** ~$0.100 (à $3/M tokens input)  
+**Budget token restant après chargement :** ~966,725 tokens (sur 1M)
 
 **⚠️ RÈGLE IMPORTANTE :**
 - ✅ **TOUJOURS mettre à jour ces chiffres** après chaque modification de ce fichier
@@ -20,7 +20,7 @@
 - ✅ Recalculer le coût : (nombre_tokens / 1,000,000) × $3
 - ✅ Mettre à jour la date de dernière modification
 
-**Dernière mise à jour compteurs :** 7 Novembre 2025 - 11h30
+**Dernière mise à jour compteurs :** 9 Novembre 2025 - 16h00
 
 ---
 
@@ -965,22 +965,25 @@ const isWhitelisted = await nftContract.isWhitelisted(MARKETPLACE_CONTRACT_ADDRE
 console.log('Marketplace whitelisté :', isWhitelisted); // true ✅
 ```
 
-### 2. CyLimitMarketplace_v4_SecureOffer.sol
+### 2. CyLimitMarketplace_v5_SecureOffer.sol
 
-**Philosophie : Sécurité Maximale + Flexibilité**
+**Philosophie : Sécurité Maximale + Transactions Atomiques**
+
+**⚠️ IMPORTANT : Le contrat est désormais référencé comme v5 (implémentation finale avec `finalizeOffer` atomique)**
 
 ```solidity
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
 /**
- * @title CyLimit NFT Marketplace v4 (Escrow Sécurisé par Offre)
- * @notice Marketplace avec escrow USDC verrouillé par offre ET target
- * @dev Design v4:
+ * @title CyLimit NFT Marketplace v5 (Escrow Sécurisé + Atomique)
+ * @notice Marketplace avec escrow USDC verrouillé par offre ET target + finalisation atomique
+ * @dev Design v5:
  * - Escrow par offerId avec target verrouillé on-chain
  * - Collection Offers supportées (target = address(0))
  * - Database injection impossible
  * - Backend ne peut pas rediriger les fonds
+ * - finalizeOffer atomique (USDC + NFTs en une transaction)
  */
 contract CyLimitMarketplace is Ownable, ReentrancyGuard {
     IERC721 public nftContract;
@@ -1014,7 +1017,10 @@ contract CyLimitMarketplace is Ownable, ReentrancyGuard {
     // Cancel offre → Refund initiator
     function releaseUSDCFromOffer(bytes32 offerId) external onlyOwner;
     
-    // Accept offre → Transfer USDC au target (ou acceptor si public)
+    // ✅ v5 NEW: Finalisation atomique (USDC + NFTs en une transaction)
+    function finalizeOffer(bytes32 offerId, address acceptor, uint256[] tokenIds) external onlyOwner;
+    
+    // ⚠️ DEPRECATED v5: Remplacé par finalizeOffer (garde pour rétrocompatibilité)
     function transferEscrowedUSDCFromOffer(bytes32 offerId, address acceptor) external onlyOwner;
     
     // Vérifier offre on-chain
@@ -1053,7 +1059,7 @@ contract CyLimitMarketplace is Ownable, ReentrancyGuard {
 | **Enchère** | escrowUSDC() → batchReleaseUSDC() / transferUSDC() | Bidder escrow → Refund losers + Transfer CyLimit |
 | **Cancel Offer** | releaseUSDCFromOffer() | Refund initiator automatique |
 
-**Avantages architecture v4 :**
+**Avantages architecture v5 :**
 - ✅ **Target verrouillé on-chain** (sécurité maximale)
 - ✅ **Collection Offers supportées** (address(0) = public)
 - ✅ **Database injection impossible** (smart contract = source de vérité)
@@ -1061,6 +1067,9 @@ contract CyLimitMarketplace is Ownable, ReentrancyGuard {
 - ✅ **Batch operations** (optimisation gas)
 - ✅ **Emergency withdraw** (tracé on-chain)
 - ✅ **Validation on-chain** (getOffer pour vérifier)
+- ✅ **✨ NEW v5: Transactions atomiques** (USDC + NFTs = tout ou rien)
+- ✅ **✨ NEW v5: Escrow verification** (vérifie on-chain avant finalisation)
+- ✅ **✨ NEW v5: MongoDB schema amélioré** (txHashEscrow + ObjectId corrects)
 
 ---
 
@@ -2655,7 +2664,24 @@ mcp_Coinbase_Developer_SearchCoinbaseDeveloper({
 
 ---
 
+## 📝 HISTORIQUE DES VERSIONS
+
+### Version 2.1 (9 Novembre 2025)
+- ✅ **Smart Contract v5** : Ajout fonction `finalizeOffer()` atomique
+- ✅ **Tests Buy Offers validés** : Flow complet Step 1-6 opérationnel
+- ✅ **MongoDB schema** : Corrections `initiatorId/targetId` (ObjectId), ajout `txHashEscrow`
+- ✅ **Sécurité renforcée** : Vérification escrow on-chain avant finalisation
+- ✅ **Backend optimisé** : Résolution erreurs "Type instantiation excessively deep"
+
+### Version 2.0.2 (7 Novembre 2025)
+- ✅ Guide MCP Coinbase Developer ajouté
+
+### Version 2.0 (5 Novembre 2025)
+- ✅ Architecture complète et définitive
+
+---
+
 **Maintenu par :** Équipe CyLimit  
-**Date :** 5 Novembre 2025  
-**Version :** 2.0.2 - Guide MCP Ajouté
+**Date :** 9 Novembre 2025  
+**Version :** 2.1 - Architecture v5 Atomique + Tests Validés
 

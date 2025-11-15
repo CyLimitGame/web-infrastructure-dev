@@ -1,0 +1,69 @@
+;;
+;; Domain:     cylimit.com.
+;; Exported:   2025-11-10 13:48:52
+;;
+;; This file is intended for use for informational and archival
+;; purposes ONLY and MUST be edited before use on a production
+;; DNS server.  In particular, you must:
+;;   -- update the SOA record with the correct authoritative name server
+;;   -- update the SOA record with the contact e-mail address information
+;;   -- update the NS record(s) with the authoritative name servers for this domain.
+;;
+;; For further information, please consult the BIND documentation
+;; located on the following website:
+;;
+;; http://www.isc.org/
+;;
+;; And RFC 1035:
+;;
+;; http://www.ietf.org/rfc/rfc1035.txt
+;;
+;; Please note that we do NOT offer technical support for any use
+;; of this zone data, the BIND name server, or any other third-party
+;; DNS software.
+;;
+;; Use at your own risk.
+;; SOA Record
+cylimit.com	3600	IN	SOA	elle.ns.cloudflare.com. dns.cloudflare.com. 2051444913 10000 2400 604800 3600
+
+;; NS Records
+cylimit.com.	86400	IN	NS	elle.ns.cloudflare.com.
+cylimit.com.	86400	IN	NS	pedro.ns.cloudflare.com.
+
+;; A Records
+admin.cylimit.com.	1	IN	A	52.47.136.154 ; cf_tags=cf-proxied:true
+admin-dev.cylimit.com.	1	IN	A	52.221.20.173 ; cf_tags=cf-proxied:false
+api.cylimit.com.	1	IN	A	15.237.2.245 ; cf_tags=cf-proxied:true
+api-dev.cylimit.com.	1	IN	A	52.221.20.173 ; cf_tags=cf-proxied:true
+api-staging.cylimit.com.	1	IN	A	52.221.20.173 ; cf_tags=cf-proxied:true
+app.cylimit.com.	1	IN	A	52.47.136.154 ; cf_tags=cf-proxied:false
+cylimit.com.	1	IN	A	18.139.134.22 ; cf_tags=cf-proxied:true
+cylimit.cylimit.com.	1	IN	A	35.214.233.6 ; cf_tags=cf-proxied:true
+frontend-dev.cylimit.com.	1	IN	A	52.221.20.173 ; cf_tags=cf-proxied:false
+graphwapi.cylimit.com.	1	IN	A	35.214.233.6 ; cf_tags=cf-proxied:true
+phpmyadmin.cylimit.com.	1	IN	A	18.139.134.22 ; cf_tags=cf-proxied:true
+
+;; AAAA Records
+ftp.cylimit.com.	1	IN	AAAA	2606:4700:3035::ac43:980a ; cf_tags=cf-proxied:true
+ftp.cylimit.com.	1	IN	AAAA	2606:4700:3034::6815:29da ; cf_tags=cf-proxied:true
+
+;; CNAME Records
+autodiscover.cylimit.com.	3600	IN	CNAME	autodiscover.outlook.com. ; cf_tags=cf-proxied:false
+whitepaper.cylimit.com.	1	IN	CNAME	6ae43c752d-hosting.gitbook.io. ; cf_tags=cf-proxied:false
+www.cylimit.com.	1	IN	CNAME	cylimit.com. ; cf_tags=cf-proxied:true
+
+;; MX Records
+cylimit.com.	3600	IN	MX	0 cylimit-com.mail.protection.outlook.com.
+
+;; TXT Records
+_acme-challenge.cylimit.com.	1	IN	TXT	"XPfqCkB6AHCow8jBGAu1YmCeW3CrnpggzfZ7bm7PZlY"
+_acme-challenge.cylimit.com.	1	IN	TXT	"n5jzHCbRLsjye4635EHTz40_6p0FcWHAa35aB2UbN0s"
+_amazonses.cylimit.com.	1	IN	TXT	"g0JYrl+g+QjauIkBmfOy/pQpN8A7ixmDekPyPHcy4gk="
+cylimit.com.	3600	IN	TXT	"google-site-verification=nSPkWdBpjr21x-4kL1Q_UFaUK2lSsPNfBvcHo7OkrQg"
+cylimit.com.	1	IN	TXT	"google-site-verification=dsV8FC2FinFGkMLMg7JUpGrkJSR7z3vwGevmq0vLjEg"
+cylimit.com.	3600	IN	TXT	"v=spf1 +a +mx +ip4:35.214.162.130 include:_spf.mailspamprotection.com include:spf.protection.outlook.com ~all"
+cylimit.com.	3600	IN	TXT	"MS=ms87390552"
+cylimit.com.	1	IN	TXT	"1|www.cylimit.com"
+cylimit.com.	1	IN	TXT	"amazonses:g0JYrl+g+QjauIkBmfOy/pQpN8A7ixmDekPyPHcy4gk="
+_dmarc.cylimit.com.	1	IN	TXT	"v=DMARC1;  p=none; rua=mailto:9e64ee6b90e24603a9e93d7aa3b56ee0@dmarc-reports.cloudflare.net"
+dmarc.cylimit.com.	1	IN	TXT	"v=DMARC1; p=none; fo=1; rua=mailto:newsletters@cylilmit.com"

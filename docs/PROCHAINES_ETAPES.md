@@ -11,9 +11,22 @@ Garder une vision claire des priorités et éviter la dispersion
 **COMMENT :**
 Consulter ce fichier pour savoir quoi faire ensuite. Mettre à jour après chaque tâche (marquer ✅, ajouter nouvelles).
 
-**DERNIÈRE MISE À JOUR :** 6 Novembre 2025 - 12h30
+**DERNIÈRE MISE À JOUR :** 10 Novembre 2025 - 20h30
 
-**STATUT :** Actif - Mis à jour après chaque tâche
+**STATUT :** ✅ MIGRATION CLOUD RUN - Préparation complète terminée !
+
+---
+
+## 🎉 ACTUALITÉ : MIGRATION CLOUD RUN PRÊTE !
+
+**Status :** ✅ **Tous les fichiers, configurations et scripts créés !**
+
+**Documentation complète :**
+- 📖 `cylimit-infrastructure/docs/migrations-cloud/GUIDE_EXECUTION_COMPLET.md` (guide étape par étape)
+- 📊 `cylimit-infrastructure/docs/migrations-cloud/SYNTHESE_FINALE_MIGRATION.md` (synthèse)
+- 📝 `cylimit-infrastructure/docs/migrations-cloud/RECAP_PHASE1_DEV.md` (recap dev)
+
+**Prochaine étape :** Exécuter le déploiement (voir guide complet)
 
 ---
 
@@ -21,22 +34,118 @@ Consulter ce fichier pour savoir quoi faire ensuite. Mettre à jour après chaqu
 
 | Priorité | Phase | Timing | Dépendances |
 |----------|-------|--------|-------------|
-| **🔥 P0** | Tests Marketplace | Cette semaine | Aucune |
-| **🔥 P1** | Migration Google Cloud Run | 2-3 semaines | Tests validés |
-| **🔥 P2** | Migration Firebase Auth | 1 mois | Cloud Run migré |
-| **⭐ P3** | Features Game (Packs, Essence) | 2-3 mois | Firebase Auth |
-| **⭐ P4** | UX/UI Améliorations | 2-3 mois | Parallèle P3 |
-| **💡 P5** | App Mobile | 3-6 mois | Features game stables |
+| **🔥 P0** | Migration Google Cloud Run | **PRÊT À DÉPLOYER** | Configurations créées ✅ |
+| **🔥 P1** | Tests Frontend Staging | Cette semaine | Cloud Run déployé |
+| **🔥 P2** | Cloud Scheduler + DNS Production | 1-2 semaines | Tests validés |
+| **⭐ P3** | Migration Firebase Auth | 1 mois | Cloud Run migré |
+| **⭐ P4** | Features Game (Packs, Essence) | 2-3 mois | Firebase Auth |
+| **⭐ P5** | UX/UI Améliorations | 2-3 mois | Parallèle P4 |
+| **💡 P6** | App Mobile | 3-6 mois | Features game stables |
 
 ---
 
-## 🔥 PRIORITÉ P0 : TESTS MARKETPLACE COMPLETS
+## 🔥 PRIORITÉ P0 : MIGRATION GOOGLE CLOUD RUN
+
+**Objectif :** Migrer progressivement de AWS vers Google Cloud Run (dev → staging → prod)
+
+**Timing :** **PRÊT À DÉPLOYER** (3-4h d'exécution manuelle)
+
+**Status :** ✅ Préparation terminée / 🔄 En attente d'exécution
+
+### 📂 Fichiers Créés (20)
+
+#### Configurations (6)
+- [x] `cylimit-backend-develop/.env.cloudrun.dev` ✅
+- [x] `cylimit-backend-develop/.env.cloudrun.production` ✅
+- [x] `cylimit-admin-backend/.env.cloudrun.dev` ✅
+- [x] `cylimit-admin-backend/.env.cloudrun.production` ✅
+- [x] `cylimit-frontend-develop/.env.dev` ✅
+- [x] `cylimit-frontend-develop/.env.production` ✅
+
+#### Scripts de Déploiement (6)
+- [x] `cylimit-backend-develop/deploy-dev-user.sh` ✅
+- [x] `cylimit-backend-develop/deploy-production-user.sh` ✅
+- [x] `cylimit-admin-backend/deploy-dev-admin.sh` ✅
+- [x] `cylimit-admin-backend/deploy-production-admin.sh` ✅
+- [x] `cylimit-frontend-develop/deploy-dev-frontend.sh` ✅
+- [x] `cylimit-frontend-develop/deploy-production-frontend.sh` ✅
+
+#### Infrastructure (3)
+- [x] `cylimit-frontend-develop/Dockerfile.cloudrun` ✅
+- [x] `cylimit-infrastructure/maintenance/index.html` ✅
+- [x] `cylimit-infrastructure/Dockerfile.maintenance` ✅
+
+#### Documentation (5)
+- [x] `GUIDE_EXECUTION_COMPLET.md` ✅ (guide principal)
+- [x] `SYNTHESE_FINALE_MIGRATION.md` ✅
+- [x] `RECAP_PHASE1_DEV.md` ✅
+- [x] `CONFIGURATION_FRONTEND_STAGING.md` ✅
+- [x] `RAPPORT_TESTS_VALIDATION_STAGING.md` ✅
+
+### Plan d'Exécution (Manuel)
+
+#### Phase 1-2 : Environnement Dev (30-45 min)
+- [ ] Déployer User Backend Dev (`deploy-dev-user.sh`)
+- [ ] Déployer Admin Backend Dev (`deploy-dev-admin.sh`)
+- [ ] Déployer Frontend Dev (`deploy-dev-frontend.sh`)
+- [ ] Configurer DNS Cloudflare (CNAME)
+- [ ] Configurer domaines custom Cloud Run
+- [ ] Tester frontend-dev.cylimit.com
+
+#### Phase 3 : Page de Maintenance (15 min)
+- [ ] Build + Deploy page de maintenance
+- [ ] Configurer DNS app.cylimit.com → maintenance
+
+#### Phase 4 : Production Test (45-60 min)
+- [ ] Déployer User Backend Production (`deploy-production-user.sh`)
+- [ ] Déployer Admin Backend Production (`deploy-production-admin.sh`)
+- [ ] Déployer Frontend Production (`deploy-production-frontend.sh`)
+- [ ] Créer sous-domaines test (frontend-prod, admin-prod, api-prod)
+- [ ] Tests complets environnement prod-test
+
+#### Phase 5 : Bascule Finale (1-2h)
+- [ ] Configurer Cloud Scheduler (cron jobs)
+- [ ] Basculer DNS production finale
+- [ ] Surveiller 48h
+- [ ] Arrêter AWS
+
+### 📖 Documentation
+
+**Consulter en priorité :**
+
+```bash
+# Guide principal (étape par étape)
+cylimit-infrastructure/docs/migrations-cloud/GUIDE_EXECUTION_COMPLET.md
+
+# Synthèse (vue d'ensemble)
+cylimit-infrastructure/docs/migrations-cloud/SYNTHESE_FINALE_MIGRATION.md
+```
+
+### 💰 ROI Attendu
+
+| Métrique | Valeur |
+|----------|--------|
+| **Économies mensuelles** | 160-210€ |
+| **Économies annuelles** | 1920-2520€ |
+| **Temps migration** | 3-4h |
+| **ROI** | Immédiat |
+
+### ⚠️ Points Critiques
+
+- ⚠️ **BACKUP BASE DE DONNÉES** avant production
+- ⚠️ Vérifier `.env.cloudrun.production` (vraies clés)
+- ⚠️ Garder AWS actif 48-72h (rollback)
+- ⚠️ Surveiller logs et métriques en temps réel
+
+---
+
+## 🔥 PRIORITÉ P0 (ANCIEN) : TESTS MARKETPLACE COMPLETS
 
 **Objectif :** Tester toutes les possibilités d'achat et revente sur le marketplace
 
 **Timing :** Cette semaine (6-10 Nov 2025)
 
-**Status :** 🔄 En cours
+**Status :** ✅ Buy Offers testés ! / 🔄 Autres features en attente
 
 ### Tâches
 
@@ -62,17 +171,20 @@ Consulter ce fichier pour savoir quoi faire ensuite. Mettre à jour après chaqu
   - [x] Acheter NFT expiré (doit échouer) - Bouton masqué automatiquement
   - [x] Double achat simultané même NFT (race condition) - Géré par vérifications backend
 
-- [ ] **Buy Offers (Offres d'Achat 1-to-1)** 🔄 En cours (v4 avec target verrouillé)
-  - [x] **Smart Contract v4** ✅ (7 Nov 2025) - Target verrouillé on-chain (faille #5 éliminée)
-  - [x] **Backend Master Wallet transfers** ✅ (7 Nov 2025) - CoinbaseService implémenté
-  - [ ] **⚠️ SÉCURITÉ : Failles restantes à corriger** (voir ci-dessous)
-  - [ ] Tester flow complet (Step 1-6) avec v4
-  - [ ] Créer offre achat (escrow USDC)
-  - [ ] Accepter offre (seller reçoit USDC, buyer reçoit NFT)
-  - [ ] Refuser offre
-  - [ ] Annuler offre (refund USDC)
-  - [ ] Offre avec balance insuffisante (doit échouer)
-  - [ ] Accepter offre sur NFT déjà vendu (doit échouer)
+- [x] **Buy Offers (Offres d'Achat 1-to-1)** ✅ (9 Nov 2025) - Architecture v5 atomique
+  - [x] **Smart Contract v5** ✅ (9 Nov 2025) - `finalizeOffer()` atomique implémenté
+  - [x] **Backend Master Wallet transfers** ✅ (9 Nov 2025) - `CoinbaseService.finalizeOfferAtomic()`
+  - [x] **MongoDB schema** ✅ (9 Nov 2025) - ObjectId corrects, txHashEscrow ajouté
+  - [x] **Vérification escrow on-chain** ✅ (9 Nov 2025) - `getOffer()` avant finalisation
+  - [x] **Tester flow complet (Step 1-6) avec v5** ✅ (9 Nov 2025)
+  - [x] Créer offre achat (escrow USDC)
+  - [x] Accepter offre (seller reçoit USDC, buyer reçoit NFT atomiquement)
+  - [x] Vérifier ownership on-chain avant finalisation
+  - [x] Vérifier escrow USDC on-chain avant finalisation
+  - [ ] Refuser offre (à implémenter frontend)
+  - [ ] Annuler offre (refund USDC) (à implémenter frontend)
+  - [ ] Edge case: Offre avec balance insuffisante (doit échouer)
+  - [ ] Edge case: Accepter offre sur NFT déjà vendu (doit échouer)
 
 - [ ] **Swaps NFT ↔ NFT**
   - [ ] Créer swap offer (1 NFT contre 1 NFT)
@@ -112,7 +224,7 @@ Consulter ce fichier pour savoir quoi faire ensuite. Mettre à jour après chaqu
 - [ ] Créer tests collection offers
 - [ ] Valider taux succès > 95%
 
-**Bloquants :** Aucun (vente directe déjà fonctionnelle, autres features à implémenter)
+**Bloquants :** Aucun (vente directe + buy offers fonctionnels, autres features à implémenter)
 
 **Documents :** [tests/PLAN_TEST_EMBEDDED_WALLET.md](./tests/PLAN_TEST_EMBEDDED_WALLET.md)
 
@@ -124,16 +236,15 @@ Consulter ce fichier pour savoir quoi faire ensuite. Mettre à jour après chaqu
 
 **Timing :** 2-3 semaines (avant mise en production des offres)
 
-**Status :** 🔄 En cours - Smart Contract v4 déployé (faille #5 éliminée)
+**Status :** 🔄 En cours - Smart Contract v5 déployé + Vérifications on-chain ajoutées
 
 **Documents :** 
-- [MARKETPLACE-OFFER-SECURITY.md](./MARKETPLACE-OFFER-SECURITY.md) - Analyse complète des 7 failles
-- [EMERGENCY_WITHDRAW_EXPLANATION.md](./EMERGENCY_WITHDRAW_EXPLANATION.md) - Fonction d'urgence owner
+- Voir archives pour analyses complètes des failles
 
-### Architecture Actuelle (⚠️ Risques)
+### Architecture Actuelle (⚠️ Risques restants)
 
 ```
-Frontend → User Backend (+ Master Wallet clés CDP) → Smart Contract v4
+Frontend → User Backend (+ Master Wallet clés CDP) → Smart Contract v5
                 ↑
             PROBLÈME : Master Wallet dans backend public
 ```
@@ -159,14 +270,14 @@ Frontend → User Backend (+ Master Wallet clés CDP) → Smart Contract v4
   - [ ] Nonce + timestamp anti-replay
   - [ ] Rate limiting (max 100 req/min par user)
 
-**PHASE 2 : Vérifications on-chain strictes**
+**PHASE 2 : Vérifications on-chain strictes** ✅ Partiellement implémenté
+- [x] Vérifier escrow on-chain avant transfer
+  - [x] Appeler `marketplace.getOffer(offerId)` 
+  - [x] Vérifier `offer.amountUSDC >= expected`
 - [ ] Vérifier txHash on-chain avant finalisation
   - [ ] Récupérer transaction via RPC
   - [ ] Vérifier `tx.from === seller.walletAddress`
   - [ ] Vérifier `tx.status === 1` (success)
-- [ ] Vérifier escrow on-chain avant transfer
-  - [ ] Appeler `marketplace.getOffer(offerId)` 
-  - [ ] Vérifier `offer.amountUSDC >= expected`
 - [ ] Lock DB (status 'finalizing')
   - [ ] Utiliser `findOneAndUpdate` avec conditions atomiques
   - [ ] Rollback en cas d'erreur
@@ -187,10 +298,15 @@ Frontend → User Backend (+ Master Wallet clés CDP) → Smart Contract v4
 | 1 | Compromission User Backend | 🔴 Critique | ⏳ **Solution 1 à implémenter** |
 | 2 | Race Condition | 🟡 Moyen | ⏳ Lock DB à ajouter |
 | 3 | Man-in-the-Middle | 🔴 Critique | ⏳ HMAC à ajouter |
-| 4 | TOCTOU (DB vs Blockchain) | 🔴 Critique | ⏳ Vérif on-chain à ajouter |
-| 5 | **Database Injection** | **🔴 CRITIQUE** | **✅ ÉLIMINÉ** (v4) |
+| 4 | TOCTOU (DB vs Blockchain) | 🔴 Critique | ✅ **PARTIELLEMENT RÉSOLU** (escrow verification) |
+| 5 | **Database Injection** | **🔴 CRITIQUE** | **✅ ÉLIMINÉ** (v5) |
 | 6 | Compromission clés CDP | 🔴 Critique | ⏳ KMS à ajouter + Séparation backends |
 | 7 | Replay Attack | 🟡 Moyen | ⏳ Nonce à ajouter |
+
+**✅ NOUVELLES PROTECTIONS v5 (9 Nov 2025):**
+- **Transactions atomiques** : USDC + NFTs en une seule transaction (élimine risque USDC transféré mais pas NFT)
+- **Vérification escrow on-chain** : Backend vérifie `getOffer()` avant finalisation
+- **MongoDB schema robuste** : `initiatorId/targetId` en ObjectId, `txHashEscrow` séparé
 
 **⚠️ IMPACT DES CLÉS CDP PARTAGÉES :**
 
@@ -225,45 +341,72 @@ Les variables d'environnement suivantes sont actuellement dans **User Backend** 
 
 **Timing :** 2-3 semaines (après tests marketplace validés)
 
-**Économies attendues :** ~300-400€/mois
+**Économies attendues :** ~200-270€/mois
+
+**Status :** ✅ Backends déployés sur staging ! Tests en cours
 
 ### Tâches
 
-#### Préparation
-- [ ] Créer projet Google Cloud
-- [ ] Configurer billing et budgets
-- [ ] Créer service accounts
-- [ ] Configurer IAM roles
+#### Préparation ✅
+- [x] ✅ Analyser infrastructure AWS actuelle (9 Nov 2025)
+- [x] ✅ Créer Dockerfiles optimisés (multi-stage, Node 20) (9 Nov 2025)
+- [x] ✅ Créer scripts déploiement automatisés (9 Nov 2025)
+- [x] ✅ Créer templates environnement (.env) (9 Nov 2025)
+- [x] ✅ Créer guide migration complet (9 Nov 2025)
+- [x] ✅ Créer script quickstart interactif (9 Nov 2025)
+- [x] ✅ Créer projet Google Cloud (cylimit-400208) (10 Nov 2025)
+- [x] ✅ Configurer billing et budgets (10 Nov 2025)
+- [x] ✅ Créer service account cylimit-runner (10 Nov 2025)
+- [x] ✅ Créer compte Upstash Redis (10 Nov 2025)
 
-#### Migration Backend User
-- [ ] Containeriser backend user (Dockerfile)
-- [ ] Tester build local
-- [ ] Déployer sur Cloud Run (environnement staging)
-- [ ] Configurer variables d'environnement
-- [ ] Tester API endpoints
-- [ ] Configurer domaine custom
-- [ ] Basculer DNS (api.cylimit.com)
+#### Migration Backend User ✅
+- [x] ✅ Containeriser backend user (Dockerfile.cloudrun) (9 Nov 2025)
+- [x] ✅ Script déploiement staging (deploy-staging-user.sh) (9 Nov 2025)
+- [x] ✅ Tester build local (10 Nov 2025)
+- [x] ✅ Déployer sur Cloud Run staging (10 Nov 2025)
+- [x] ✅ Configurer variables d'environnement (.env.cloudrun.staging) (10 Nov 2025)
+- [ ] Tester API endpoints staging (en cours)
+- [ ] Créer script déploiement production
+- [ ] Configurer domaine custom (api.cylimit.com)
+- [ ] Basculer DNS production
 
-#### Migration Backend Admin
-- [ ] Containeriser backend admin
-- [ ] Déployer sur Cloud Run
-- [ ] Tester cron jobs (Cloud Scheduler)
-- [ ] Valider calculs scores
+#### Migration Backend Admin ✅
+- [x] ✅ Containeriser backend admin (Dockerfile.cloudrun) (9 Nov 2025)
+- [x] ✅ Script déploiement staging (deploy-staging-admin.sh) (9 Nov 2025)
+- [x] ✅ Script Cloud Scheduler (setup-cloud-scheduler-staging.sh) (9 Nov 2025)
+- [x] ✅ Tester build local (10 Nov 2025)
+- [x] ✅ Déployer sur Cloud Run staging (10 Nov 2025)
+- [ ] Configurer Cloud Scheduler (cron jobs) (prochaine étape)
+- [ ] Tester calculs scores staging
+- [ ] Déployer production
 
 #### Migration Base de Données
-- [ ] Évaluer MongoDB Atlas vs Cloud SQL
-- [ ] Si Cloud SQL : migration progressive
-- [ ] Si Atlas : garder (déjà optimisé)
+- [x] ✅ Garder MongoDB Atlas (déjà optimisé, pas de migration)
 
 #### Validation
+- [ ] Tests end-to-end staging
+- [ ] Monitoring (Cloud Logging + alertes)
 - [ ] Tests end-to-end production
-- [ ] Monitoring (logs, métriques)
+- [ ] Validation coûts vs estimations
 - [ ] Rollback plan si problème
-- [ ] Désactivation ancienne infra AWS
+- [ ] Désactivation ancienne infra AWS (après 7 jours)
 
-**Bloquants :** Tests marketplace doivent être validés d'abord
+**Bloquants :** Aucun - Configuration terminée, prêt à déployer
 
-**Documents :** Voir `archives/migrations-cloud/ANALYSE-GOOGLE-CLOUD-RUN.md`
+**Documents :** 
+- [GUIDE_MIGRATION_GOOGLE_CLOUD_RUN.md](./migrations-cloud/GUIDE_MIGRATION_GOOGLE_CLOUD_RUN.md) - Guide complet
+- [quickstart-migration.sh](./migrations-cloud/quickstart-migration.sh) - Script de démarrage
+
+**Fichiers créés (9 Nov 2025) :**
+- `cylimit-backend-develop/Dockerfile.cloudrun` - Dockerfile optimisé User Backend
+- `cylimit-backend-develop/deploy-staging-user.sh` - Script déploiement staging
+- `cylimit-backend-develop/env.cloudrun.staging.template` - Template variables env
+- `cylimit-admin-backend/Dockerfile.cloudrun` - Dockerfile optimisé Admin Backend
+- `cylimit-admin-backend/deploy-staging-admin.sh` - Script déploiement staging
+- `cylimit-admin-backend/setup-cloud-scheduler-staging.sh` - Script cron jobs
+- `cylimit-admin-backend/env.cloudrun.staging.template` - Template variables env
+- `cylimit-infrastructure/docs/migrations-cloud/GUIDE_MIGRATION_GOOGLE_CLOUD_RUN.md` - Documentation complète
+- `cylimit-infrastructure/docs/migrations-cloud/quickstart-migration.sh` - Script interactif
 
 ---
 
@@ -530,7 +673,23 @@ Les variables d'environnement suivantes sont actuellement dans **User Backend** 
 
 ---
 
-## ✅ SESSIONS DE REFONTE (6 Nov 2025)
+## ✅ TÂCHES COMPLÉTÉES (9 Novembre 2025)
+
+### Buy Offers Architecture v5 ✅
+- ✅ Smart Contract `CyLimitMarketplace_v5_SecureOffer.sol` déployé
+- ✅ Fonction `finalizeOffer()` atomique implémentée (USDC + NFTs en une transaction)
+- ✅ Backend `CoinbaseService.finalizeOfferAtomic()` créé
+- ✅ Backend `InternalController` refactoré pour utiliser transaction atomique
+- ✅ MongoDB schema `Offer` corrigé :
+  - `initiatorId` et `targetId` stockés en `ObjectId`
+  - `acceptedBy` supprimé (redondant)
+  - `txHashEscrow` ajouté (transaction escrow initiale)
+  - `txHash` clarifié (transaction atomique finale)
+- ✅ Vérification escrow on-chain avant finalisation (`getOffer()`)
+- ✅ Tests flow complet Step 1-6 validés
+- ✅ Résolution erreurs TypeScript "Type instantiation excessively deep"
+
+### Sessions de Refonte (6 Nov 2025) ✅
 
 ### Session 1 : CONTEXT_AUTH.md ✅
 - Création contexte authentification complet
