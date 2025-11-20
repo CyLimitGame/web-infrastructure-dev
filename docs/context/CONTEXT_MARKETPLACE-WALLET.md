@@ -1,17 +1,17 @@
 # 🎯 VISION COMPLÈTE - WALLETS, NFT, MARKETPLACE & FLOWS CYLIMIT
 
-**Date :** 9 Novembre 2025  
-**Version :** 2.1 - Architecture v5 Atomique + Tests Validés  
+**Date :** 19 Novembre 2025  
+**Version :** 2.3 - Fix Hook CDP Approval Prématuré  
 **Objectif :** Document de référence unique pour la compréhension complète du système
 
 ---
 
 ## 💰 COÛT DE CHARGEMENT DE CE CONTEXTE
 
-**Taille du fichier :** ~2662 lignes  
-**Nombre de tokens :** ~33,275 tokens  
-**Coût par chargement :** ~$0.100 (à $3/M tokens input)  
-**Budget token restant après chargement :** ~966,725 tokens (sur 1M)
+**Taille du fichier :** ~2950 lignes  
+**Nombre de tokens :** ~36,875 tokens  
+**Coût par chargement :** ~$0.111 (à $3/M tokens input)  
+**Budget token restant après chargement :** ~963,125 tokens (sur 1M)
 
 **⚠️ RÈGLE IMPORTANTE :**
 - ✅ **TOUJOURS mettre à jour ces chiffres** après chaque modification de ce fichier
@@ -20,7 +20,7 @@
 - ✅ Recalculer le coût : (nombre_tokens / 1,000,000) × $3
 - ✅ Mettre à jour la date de dernière modification
 
-**Dernière mise à jour compteurs :** 9 Novembre 2025 - 16h00
+**Dernière mise à jour compteurs :** 19 Novembre 2025 - 11h00
 
 ---
 
@@ -35,6 +35,287 @@
 7. [Flows d'Achats et Ventes](#flows-dachats-et-ventes)
 8. [Sécurité et Contrôle](#sécurité-et-contrôle)
 9. [Intégration Coinbase](#intégration-coinbase)
+10. [🚨 PROBLÈMES CRITIQUES IDENTIFIÉS & SOLUTIONS](#-problèmes-critiques-identifiés--solutions)
+11. [Migration NFTs Sécurisée](#migration-nfts-sécurisée)
+
+---
+
+## 🚨 RÉSUMÉ EXÉCUTIF - CORRECTIFS CRITIQUES NOV 2025
+
+### 🔴 Problème #1 : Bug Critique `batchTransfer()` dans NFT Contract
+
+**Date découverte :** 19 Novembre 2025  
+**Gravité :** 🔴 CRITIQUE - Bloque TOUTES les migrations NFT  
+**Statut :** ✅ **RÉSOLU**
+
+**Symptôme :**
+```
+Error: Transfer not allowed: only whitelisted addresses can transfer NFTs
+```
+
+**Cause racine :**
+```solidity
+// ❌ ANCIEN CODE (lignes 246-252)
+function batchTransfer(address from, address to, uint256[] memory tokenIds) {
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+        _transfer(from, to, tokenIds[i]);
+        // ↑ _transfer() passe address(0) comme 'auth' à _update()
+        // → whitelist check échoue car address(0) pas whitelisté
+    }
+}
+```
+
+**Explication technique :**
+
+OpenZeppelin ERC721 utilise un paramètre `auth` dans `_update()` pour identifier qui autorise le transfert :
+
+```solidity
+// Dans _update() (ligne 187-190)
+require(
+    transferWhitelist[auth],
+    "Transfer not allowed"
+);
+
+// Quand on appelle _transfer() :
+function _transfer(address from, address to, uint256 tokenId) internal {
+    _update(to, tokenId, address(0)); // ← auth = address(0) ❌
+}
+
+// Quand on appelle transferFrom() :
+function transferFrom(address from, address to, uint256 tokenId) public {
+    _update(to, tokenId, msg.sender); // ← auth = msg.sender ✅
+}
+```
+
+**Solution appliquée :**
+```solidity
+// ✅ NOUVEAU CODE (lignes 246-252)
+function batchTransfer(address from, address to, uint256[] memory tokenIds) {
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+        transferFrom(from, to, tokenIds[i]);
+        // ↑ transferFrom() passe msg.sender (Master Smart Account whitelisté) comme 'auth'
+        // → whitelist check réussit ✅
+    }
+}
+```
+
+**Pourquoi ça fonctionne maintenant :**
+1. Master Smart Account est whitelisté ✅
+2. `transferFrom()` passe `msg.sender` (Master SA) comme `auth` ✅
+3. `_update()` vérifie `transferWhitelist[msg.sender]` → true ✅
+4. Les NFTs de l'user sont approuvés au Master SA via `setApprovalForAll` ✅
+
+**Fichiers modifiés :**
+- `contracts/CyLimitNFT_v2_181125.sol` ligne 249
+- `admin-backend/scripts/base/1-whitelist-marketplace-v2.cjs` ligne 169
+
+---
+
+### 🔴 Problème #2 : Migration Auto Re-Triggering Sans Fin
+
+**Date découverte :** 19 Novembre 2025  
+**Gravité :** 🟠 MAJEUR - Spam migrations ratées  
+**Statut :** ✅ **RÉSOLU**
+
+**Symptôme :**
+Chaque reconnexion wallet re-déclenchait migration même si déjà tentée (et échouée).
+
+**Cause racine :**
+
+1. **Frontend :** Cache `syncedAddresses` persistait entre sessions de logout/login
+```typescript
+// ❌ ANCIEN CODE
+const syncedAddresses = new Set<string>(); // Global scope (jamais vidé)
+
+useEffect(() => {
+    if (address && !syncedAddresses.has(address)) {
+        syncWalletAddress(address);
+        syncedAddresses.add(address);
+    }
+}, [address]);
+// → Après logout, le Set reste rempli
+// → Prochaine connexion : address déjà dans Set = pas de sync
+```
+
+2. **Backend :** Logique ne bloquait pas les retries si `migrationStatus === FAILED`
+```typescript
+// ❌ ANCIEN CODE
+if (user.migrationStatus === MigrationStatus.COMPLETED) {
+    // Skip migration
+}
+// → Si FAILED, retry à chaque sync
+```
+
+**Solution appliquée :**
+
+**Frontend (`WalletContext.tsx` ligne 256-260) :**
+```typescript
+// ✅ NOUVEAU CODE
+useEffect(() => {
+    // Vider cache lors déconnexion complète
+    if (!isCylimitLoggedIn && !isSignedIn) {
+        console.log('🗑️ Déconnexion complète → reset cache syncedAddresses');
+        syncedAddresses.clear();
+    }
+}, [isCylimitLoggedIn, isSignedIn]);
+```
+
+**Backend (`migration.service.ts` ligne 332-350) :**
+```typescript
+// ✅ NOUVEAU CODE
+// Vérifier si migration DÉJÀ TENTÉE (peu importe résultat)
+if (user.migratedAt) {
+    const statusLabel = user.migrationStatus === MigrationStatus.COMPLETED ? 'succeeded' : 
+                       user.migrationStatus === MigrationStatus.FAILED ? 'failed' : 
+                       'attempted';
+    
+    this.logger.log(
+        `ℹ️ Migration already ${statusLabel} for user ${userIdStr} at ${user.migratedAt.toISOString()}. ` +
+        `Skipping automatic retry. Use admin retry if needed.`
+    );
+    
+    return {
+        success: user.migrationStatus === MigrationStatus.COMPLETED,
+        // ... skip migration
+    };
+}
+// → migratedAt = indicateur unique "déjà tenté"
+// → Seul admin peut retry manuellement
+```
+
+**Résultat :**
+- ✅ Migration automatique = **1× MAX** par user (premier sync wallet)
+- ✅ Si échoue → admin retry uniquement
+- ✅ Plus de spam migrations
+
+---
+
+### 🔴 Problème #3 : NFTs Bloqués Si Échec Migration (Sans Approval Marketplace)
+
+**Date découverte :** 19 Novembre 2025  
+**Gravité :** 🔴 CRITIQUE - Perte définitive NFTs  
+**Statut :** ✅ **RÉSOLU**
+
+**Symptôme :**
+Si migration échoue après transfer NFT → user, et que user n'a **pas approuvé Marketplace**, les NFTs sont **bloqués** (impossibles à récupérer).
+
+**Scénario d'échec :**
+```
+1. Master SA transfère NFTs → User Embedded Wallet ✅
+2. Migration échoue pour raison X (RPC timeout, etc.) ❌
+3. Backend veut récupérer NFTs pour retry
+4. User Wallet n'a PAS approuvé Marketplace
+5. transferFrom(user, master) → REVERT "Not authorized" ❌
+6. NFTs bloqués définitivement dans wallet user
+```
+
+**Solution appliquée :**
+
+**Backend (`migration.service.ts` ligne 953-999) :**
+```typescript
+// ✅ Vérifier approval AVANT migration
+async migrateUserAssets(userId, toAddress) {
+    // 1. Vérifier approval Marketplace
+    const isApproved = await this.nftContract.isApprovedForAll(
+        toAddress,
+        MARKETPLACE_CONTRACT
+    );
+    
+    if (!isApproved) {
+        this.logger.warn(
+            `⚠️ User ${userId} has NOT approved Marketplace. ` +
+            `Migration ABORTED to prevent NFT lock.`
+        );
+        
+        return {
+            success: false,
+            errors: ['USER_MUST_APPROVE_MARKETPLACE_FIRST']
+        };
+    }
+    
+    // 2. Migrer seulement si approuvé
+    await this.transferNFTsV2(userId, toAddress, nfts);
+}
+```
+
+**Frontend (`WalletContext.tsx` + modal réutilisable) :**
+```typescript
+// ✅ Forcer approval AVANT sync
+const syncWalletAddressWithApproval = async (address: string) => {
+    // 1. Vérifier approval
+    const approvalCheck = await checkMarketplaceApproval();
+    
+    if (!approvalCheck.isApproved) {
+        // 2. Afficher modal approval (réutilise SellCardForm modal)
+        setShowApprovalModal(true);
+        setPendingSyncAddress(address);
+        return; // ← STOP : pas de sync
+    }
+    
+    // 3. Sync seulement si approuvé
+    await syncWalletAddressInternal(address);
+};
+
+// 4. Après approval dans modal :
+const handleApproveMarketplace = async () => {
+    waitingForApprovalConfirmation.current = true;
+    await approveMarketplace();
+    // ← useEffect attend approvalStatus === 'success' + transactionHash
+};
+
+// ✅ SOLUTION PROFESSIONNELLE : Backend utilise waitForTransaction (natif ethers.js)
+// Pas de polling, pas de timeout manuel, attente passive d'événement blockchain
+
+// Backend endpoint : POST /marketplace/confirm-approval
+const receipt = await provider.waitForTransaction(transactionHash, 1);
+
+if (receipt.status === 1) {
+    // ✅ Transaction confirmée on-chain
+    const isApproved = await nftContract.isApprovedForAll(userWallet, marketplace);
+    
+    return { success: true, isApproved, blockNumber: receipt.blockNumber };
+}
+
+// Frontend appelle simplement le backend et attend
+const response = await fetch('/marketplace/confirm-approval', {
+    method: 'POST',
+    body: JSON.stringify({ transactionHash })
+});
+
+// ✅ Quand le backend répond = transaction confirmée
+if (response.ok) {
+    syncWalletAddressInternal(pendingSyncAddress);
+}
+```
+
+**Hook (`useMarketplace.ts` ligne 683) :**
+```typescript
+// ✅ Exposer approvalData pour vérifier transactionHash
+return {
+    approvalStatus: status, // "idle" | "pending" | "success" | "error"
+    approvalData: data, // ← NOUVEAU : contient transactionHash
+    // ...
+};
+```
+
+**Résultat :**
+- ✅ **Zéro risque** perte NFT
+- ✅ Marketplace peut **toujours récupérer** si problème
+- ✅ User protégé contre blocage définitif
+- ✅ Backend utilise **`waitForTransaction()`** natif ethers.js (pas de polling manuel)
+- ✅ Attente **passive** jusqu'à événement blockchain réel (pas de timeout arbitraire)
+
+---
+
+### 📊 Récapitulatif Fixes Nov 2025
+
+| Problème | Gravité | Impact | Statut | Fichiers Modifiés |
+|----------|---------|--------|--------|-------------------|
+| `batchTransfer()` address(0) | 🔴 CRITIQUE | Bloque migrations | ✅ RÉSOLU | `CyLimitNFT_v2_181125.sol` L249 |
+| Migration auto retry infini | 🟠 MAJEUR | Spam backend | ✅ RÉSOLU | `migration.service.ts` L332, `WalletContext.tsx` L256 |
+| NFTs bloqués sans approval | 🔴 CRITIQUE | Perte NFTs | ✅ RÉSOLU | `migration.service.ts` L953, `WalletContext.tsx` |
+| Approval confirmé prématurément | 🔴 CRITIQUE | Migration lancée sans approval réel | ✅ RÉSOLU | `marketplace.controller.ts` L262-365 (waitForTransaction), `WalletContext.tsx` L357-478 |
+| Script whitelist (false→true) | 🟡 MINEUR | Erreur config | ✅ RÉSOLU | `1-whitelist-marketplace-v2.cjs` L169 |
 
 ---
 
@@ -1037,14 +1318,16 @@ contract CyLimitMarketplace is Ownable, ReentrancyGuard {
     function buyMultipleNFTs(uint256[] calldata tokenIds, address[] calldata sellers) external;
     
     // ═══════════════════════════════════════════════════════════════════════
-    // ESCROW GLOBAL (Enchères)
+    // ESCROW GLOBAL (Autres cas d'usage - PAS pour enchères)
     // ═══════════════════════════════════════════════════════════════════════
+    // ⚠️ NOTE : Les enchères utilisent escrowUSDCForOffer() avec bidId unique
+    // Ce système global est gardé pour d'autres cas d'usage futurs
     
     function escrowUSDC(uint256 amount) external;
     function releaseUSDC(address user, uint256 amount) external onlyOwner;
     function transferUSDC(address from, address to, uint256 amount) external onlyOwner;
     
-    // Batch refund (optimisation gas enchères)
+    // Batch refund (optimisation gas - autres cas d'usage)
     function batchReleaseUSDC(address[] calldata users, uint256[] calldata amounts) external onlyOwner;
 }
 ```
@@ -1056,7 +1339,7 @@ contract CyLimitMarketplace is Ownable, ReentrancyGuard {
 | **Buy Offer 1-to-1** | escrowUSDCForOffer(target) → transferEscrowedUSDCFromOffer() | Buyer escrow → Transfer au seller ciblé |
 | **Collection Offer** | escrowUSDCForOffer(address(0)) → transferEscrowedUSDCFromOffer(acceptor) | Buyer escrow → Transfer au premier seller |
 | **Swap avec USDC** | escrowUSDCForOffer(target) → transferEscrowedUSDCFromOffer() | Initiator escrow → Transfer au target |
-| **Enchère** | escrowUSDC() → batchReleaseUSDC() / transferUSDC() | Bidder escrow → Refund losers + Transfer CyLimit |
+| **Enchère** | escrowUSDCForOffer(bidId) → releaseUSDCFromOffer() / transferEscrowedUSDCFromOffer() | Bidder escrow par bidId → Refund losers + Transfer CyLimit |
 | **Cancel Offer** | releaseUSDCFromOffer() | Refund initiator automatique |
 
 **Avantages architecture v5 :**
@@ -1391,6 +1674,7 @@ Résultat :
 - ✅ **Escrow USDC obligatoire** (smart contract)
 - ✅ **Auto-bid backend** (logique en DB)
 - ✅ **Refund automatique** (losers + surplus)
+- ✅ **Système par offer** : Chaque bid utilise `escrowUSDCForOffer()` avec un `bidId` unique (comme les offres du marché secondaire)
 
 **Flow Backend (Auto-Bid Logic) :**
 
@@ -1409,23 +1693,31 @@ async placeBid(auctionId: string, userId: string, maxBid: number) {
   
   // 1. Vérifier AVANT d'escrow
   if (maxBid > auction.currentWinnerMaxBid) {
-    // ✅ Nouveau winner → ESCROW
-    await this.marketplaceContract.escrowUSDC(maxBid * 1e6, {
-      from: user.baseWalletAddress
-    });
+    // ✅ Nouveau winner → ESCROW avec bidId unique
+    const bidId = keccak256(
+      abi.encodePacked(auctionId, userId, maxBid, Date.now())
+    );
     
-    // Refund ancien winner
-    if (auction.currentWinner) {
-      await this.marketplaceContract.releaseUSDC(
-        oldWinner.baseWalletAddress,
-        auction.currentWinnerMaxBid * 1e6
+    // Escrow avec système par offer (target = address(0) = public)
+    await this.marketplaceContract.escrowUSDCForOffer(
+      bidId,
+      address(0), // Public (comme Collection Offer)
+      maxBid * 1e6,
+      { from: user.baseWalletAddress }
+    );
+    
+    // Refund ancien winner (via son bidId)
+    if (auction.currentWinner && auction.currentWinnerBidId) {
+      await this.marketplaceContract.releaseUSDCFromOffer(
+        auction.currentWinnerBidId
       );
     }
     
-    // Update DB
+    // Update DB avec bidId
     auction.currentBid = maxBid;
     auction.currentWinner = userId;
     auction.currentWinnerMaxBid = maxBid;
+    auction.currentWinnerBidId = bidId; // ✅ Sauvegarder bidId
   } else {
     // ❌ Bid perdu → PAS D'ESCROW
     auction.currentBid = Math.min(maxBid + 1, auction.currentWinnerMaxBid);
@@ -1434,17 +1726,20 @@ async placeBid(auctionId: string, userId: string, maxBid: number) {
 
 async finalizeAuction(auctionId: string) {
   const auction = await this.auctionModel.findById(auctionId);
+  const winner = await this.userModel.findById(auction.currentWinner);
   
-  // 1. Transfer USDC escrowed → CyLimit
-  await this.marketplaceContract.transferEscrowedUSDC(
-    winner.baseWalletAddress,
-    process.env.MASTER_WALLET_ADDRESS,
-    auction.currentBid * 1e6
+  // 1. Transfer USDC escrowed → CyLimit (via bidId)
+  await this.marketplaceContract.transferEscrowedUSDCFromOffer(
+    auction.currentWinnerBidId,
+    process.env.MASTER_WALLET_ADDRESS // CyLimit reçoit les USDC
   );
   
-  // 2. Refund surplus
+  // 2. Refund surplus (si nécessaire)
   const surplus = auction.currentWinnerMaxBid - auction.currentBid;
   if (surplus > 0) {
+    // Le surplus reste dans l'escrow du bidId, on peut créer un nouveau bidId pour le refund
+    // ou utiliser releaseUSDC() global car c'est un refund du même user (pas de confusion)
+    // Note: Pour simplifier, on peut utiliser releaseUSDC() global pour le surplus
     await this.marketplaceContract.releaseUSDC(
       winner.baseWalletAddress,
       surplus * 1e6
@@ -2664,7 +2959,497 @@ mcp_Coinbase_Developer_SearchCoinbaseDeveloper({
 
 ---
 
+## 🔄 MIGRATION NFTs SÉCURISÉE
+
+### Vue d'Ensemble
+
+**Objectif :** Transférer TOUS les NFTs d'un ancien wallet vers le nouvel Embedded Wallet **sans risque de perte**.
+
+**Contraintes de sécurité :**
+1. ✅ User DOIT approuver Marketplace AVANT migration
+2. ✅ Migration automatique = 1× MAX par user
+3. ✅ Si échoue → admin retry uniquement
+4. ✅ Vérification approval on-chain avant chaque transfer
+
+### Flow Complet Migration Sécurisée
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  MIGRATION NFTS SÉCURISÉE - FLOW COMPLET                            │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ÉTAPE 1 : User Crée Embedded Wallet                                │
+│  ──────────────────────────────────────────────────────────────     │
+│  → WalletAuthModal (Email/SMS OTP)                                  │
+│  → CDP crée Smart Account                                           │
+│  → address: "0x..." obtenue                                         │
+│                                                                     │
+│  ÉTAPE 2 : Frontend Détecte Besoin Migration                        │
+│  ──────────────────────────────────────────────────────────────     │
+│  → WalletContext détecte nouvelle adresse                           │
+│  → Vérifie si adresse jamais sync (Set cache)                       │
+│  → Appelle syncWalletAddressWithApproval(address)                   │
+│                                                                     │
+│  ÉTAPE 2.5 : ⚠️ CHECKPOINT FRONTEND - Vérification Approval         │
+│  ──────────────────────────────────────────────────────────────     │
+│  → Frontend appelle checkMarketplaceApproval()                      │
+│  → Backend vérifie isApprovedForAll(userWallet, marketplace)        │
+│                                                                     │
+│  → Si PAS approuvé :                                                │
+│    ⚠️ Modal Approval affiché                                        │
+│    → User clique "Approuver"                                        │
+│    → approveMarketplace() envoie UserOperation                      │
+│    → ⏳ Frontend attend approvalData.transactionHash                │
+│    → ✅ Confirmation on-chain AVANT de continuer                    │
+│    → Sync wallet après confirmation réelle                          │
+│                                                                     │
+│  → Si approuvé :                                                    │
+│    ✅ Sync wallet directement                                       │
+│    → Continue vers backend                                          │
+│                                                                     │
+│  ÉTAPE 3 : Backend Vérifie Eligibilité Migration                    │
+│  ──────────────────────────────────────────────────────────────     │
+│  → user.oldWalletAddress existe ? (user ancien)                     │
+│  → user.migratedAt existe ? (déjà tenté)                            │
+│  → Si déjà tenté → SKIP (admin retry only)                          │
+│                                                                     │
+│  ÉTAPE 4 : ⚠️ CHECKPOINT SÉCURITÉ - Vérification Approval          │
+│  ──────────────────────────────────────────────────────────────     │
+│  → Backend appelle nftContract.isApprovedForAll(                    │
+│      userWallet,                                                    │
+│      marketplaceContract                                            │
+│    )                                                                │
+│                                                                     │
+│  → Si PAS approuvé :                                                │
+│    ❌ Migration ABORTED                                             │
+│    ❌ Erreur : "USER_MUST_APPROVE_MARKETPLACE_FIRST"                │
+│    → Frontend affiche modal approval                                │
+│    → User signe setApprovalForAll(marketplace, true)                │
+│    → Retry sync après confirmation                                  │
+│                                                                     │
+│  → Si approuvé :                                                    │
+│    ✅ Migration autorisée                                           │
+│    → Continue                                                       │
+│                                                                     │
+│  ÉTAPE 5 : Migration USDC                                           │
+│  ──────────────────────────────────────────────────────────────     │
+│  → Master Wallet transfère USDC                                     │
+│  → Montant : balance oldWalletAddress                               │
+│  → Transfer direct (pas escrow)                                     │
+│                                                                     │
+│  ÉTAPE 6 : Migration NFTs (Batch)                                   │
+│  ──────────────────────────────────────────────────────────────     │
+│  → Récupère TOUS NFTs du user en DB                                 │
+│  → Batch de 50 NFTs max                                             │
+│  → Master SA appelle batchTransfer(                                 │
+│      masterAddress,  ← from (Master détient tous NFTs)              │
+│      userAddress,    ← to (nouveau Embedded Wallet)                 │
+│      [tokenId1, tokenId2, ...]                                      │
+│    )                                                                │
+│                                                                     │
+│  → ✅ batchTransfer utilise transferFrom() (fix Nov 2025)           │
+│  → ✅ msg.sender = Master SA (whitelisté)                           │
+│  → ✅ _update() vérifie transferWhitelist[msg.sender] = true        │
+│  → ✅ Transfert réussit                                             │
+│                                                                     │
+│  ÉTAPE 7 : Update Database                                          │
+│  ──────────────────────────────────────────────────────────────     │
+│  → user.migrationStatus = "COMPLETED"                               │
+│  → user.migratedAt = new Date()                                     │
+│  → nfts.forEach(nft => nft.currentOwner = userAddress)              │
+│                                                                     │
+│  ÉTAPE 8 : Logging & Audit                                          │
+│  ──────────────────────────────────────────────────────────────     │
+│  → address_activities.create({                                      │
+│      userId,                                                        │
+│      type: "MIGRATION_NFT",                                         │
+│      tokenIds: [...],                                               │
+│      txHash: "0x...",                                               │
+│      status: "SUCCESS"                                              │
+│    })                                                               │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Code Backend - Migration Sécurisée
+
+```typescript
+/**
+ * OBJECTIF : Migrer assets user de old wallet → Embedded Wallet
+ * 
+ * SÉCURITÉ CRITIQUES :
+ * 1. Vérifier approval Marketplace AVANT transfer NFTs
+ * 2. Vérifier migratedAt pour éviter retry automatique
+ * 3. Vérifier ownership on-chain avant transfer
+ * 
+ * APPELÉ DEPUIS :
+ * - user.controller.syncWalletAddress() (automatique)
+ * - admin.controller.retryMigration() (manuel)
+ */
+async migrateUserAssets(
+  userId: Types.ObjectId,
+  toAddress: string,
+): Promise<MigrationResult> {
+  const userIdStr = userId.toString();
+  
+  this.logger.log(`🔄 Starting migration for user ${userIdStr} → ${toAddress}`);
+
+  // ──────────────────────────────────────────────────────────────
+  // ÉTAPE 1 : Récupérer user
+  // ──────────────────────────────────────────────────────────────
+  const user = await this.userModel.findById(userId);
+  if (!user) throw new Error('User not found');
+
+  // ──────────────────────────────────────────────────────────────
+  // ÉTAPE 2 : ✅ FIX NOV 2025 - Vérifier si déjà tenté
+  // → migratedAt = indicateur unique "au moins 1 tentative"
+  // → Bloque retry automatique (seul admin peut retry)
+  // ──────────────────────────────────────────────────────────────
+  if (user.migratedAt) {
+    const statusLabel = user.migrationStatus === MigrationStatus.COMPLETED ? 'succeeded' : 
+                       user.migrationStatus === MigrationStatus.FAILED ? 'failed' : 
+                       'attempted';
+    
+    this.logger.log(
+      `ℹ️ Migration already ${statusLabel} for user ${userIdStr} at ${user.migratedAt.toISOString()}. ` +
+      `Skipping automatic retry. Use admin retry if needed.`
+    );
+    
+    return {
+      success: user.migrationStatus === MigrationStatus.COMPLETED,
+      usdcTransferred: false,
+      usdcAmount: 0,
+      nftsTransferred: 0,
+      nftsFailed: 0,
+      errors: user.migrationStatus === MigrationStatus.FAILED 
+        ? ['Migration already attempted and failed. Contact support or use admin retry.']
+        : [],
+    };
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // ÉTAPE 3 : ⚠️ CHECKPOINT SÉCURITÉ CRITIQUE
+  // → Vérifier approval Marketplace AVANT migration
+  // → Si pas approuvé = ABORT migration (risque NFTs bloqués)
+  // ──────────────────────────────────────────────────────────────
+  try {
+    this.logger.log(`🔐 Vérification approval Marketplace pour ${toAddress}...`);
+    
+    const isApproved = await this.nftContract.isApprovedForAll(
+      toAddress,
+      process.env.TESTNET_MARKETPLACE_CONTRACT_ADDRESS,
+    );
+
+    if (!isApproved) {
+      this.logger.warn(
+        `⚠️ SÉCURITÉ : User ${userIdStr} n'a PAS approuvé Marketplace. ` +
+        `Migration ANNULÉE pour éviter blocage NFTs.`
+      );
+      
+      // ⚠️ NE PAS set migratedAt (permettre retry après approval)
+      return {
+        success: false,
+        usdcTransferred: false,
+        usdcAmount: 0,
+        nftsTransferred: 0,
+        nftsFailed: 0,
+        errors: [
+          'USER_MUST_APPROVE_MARKETPLACE_FIRST',
+          'Please approve Marketplace before migration to prevent NFT lock.',
+        ],
+      };
+    }
+
+    this.logger.log(`✅ Marketplace approuvé, migration peut continuer.`);
+  } catch (error) {
+    this.logger.error(`❌ Erreur vérification approval : ${error.message}`);
+    return {
+      success: false,
+      errors: [`Approval check failed: ${error.message}`],
+    };
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // ÉTAPE 4 : Migrer USDC
+  // ──────────────────────────────────────────────────────────────
+  let usdcTransferred = false;
+  let usdcAmount = 0;
+
+  if (user.oldWalletAddress) {
+    try {
+      const balance = await this.getUSDCBalance(user.oldWalletAddress);
+      if (balance > 0) {
+        await this.transferUSDC(user.oldWalletAddress, toAddress, balance);
+        usdcTransferred = true;
+        usdcAmount = balance;
+        this.logger.log(`✅ USDC migré : ${balance} USDC`);
+      }
+    } catch (error) {
+      this.logger.warn(`⚠️ Erreur migration USDC : ${error.message}`);
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // ÉTAPE 5 : Migrer NFTs (avec approval validé ✅)
+  // ──────────────────────────────────────────────────────────────
+  let nftsTransferred = 0;
+  let nftsFailed = 0;
+  const errors: string[] = [];
+
+  try {
+    // Récupérer tous NFTs du user en DB
+    const userNFTs = await this.nftModel.find({
+      ownerId: userId,
+      blockchain: Blockchain.BASE,
+    });
+
+    if (userNFTs.length > 0) {
+      this.logger.log(`🎴 ${userNFTs.length} NFTs à migrer`);
+
+      // Batch transfer (50 max)
+      const result = await this.transferNFTsV2(userId, toAddress, userNFTs);
+      
+      nftsTransferred = result.transferred;
+      nftsFailed = result.failed;
+      
+      if (result.errors.length > 0) {
+        errors.push(...result.errors);
+      }
+
+      this.logger.log(`✅ NFTs migrés : ${nftsTransferred}/${userNFTs.length}`);
+    }
+  } catch (error) {
+    this.logger.error(`❌ Erreur migration NFTs : ${error.message}`);
+    errors.push(`NFT migration failed: ${error.message}`);
+    nftsFailed = (await this.nftModel.countDocuments({ ownerId: userId }));
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // ÉTAPE 6 : Update user status
+  // ──────────────────────────────────────────────────────────────
+  const success = nftsFailed === 0 && errors.length === 0;
+
+  user.migrationStatus = success
+    ? MigrationStatus.COMPLETED
+    : MigrationStatus.FAILED;
+  user.migratedAt = new Date(); // ✅ Set TOUJOURS (même si failed)
+  await user.save();
+
+  this.logger.log(
+    `${success ? '✅' : '⚠️'} Migration ${success ? 'COMPLETED' : 'FAILED'} pour user ${userIdStr}`
+  );
+
+  return {
+    success,
+    usdcTransferred,
+    usdcAmount,
+    nftsTransferred,
+    nftsFailed,
+    errors,
+  };
+}
+```
+
+### Code Frontend - Modal Approval Réutilisable
+
+```typescript
+// WalletContext.tsx - Gestion approval avant sync
+
+import { useMarketplace } from '@/hooks/useMarketplace';
+import { useState } from 'react';
+
+export const WalletContext = () => {
+  // ... autres hooks
+
+  const {
+    checkMarketplaceApproval,
+    approveMarketplace,
+    approvalStatus,
+  } = useMarketplace();
+
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [pendingSyncAddress, setPendingSyncAddress] = useState<string | null>(null);
+
+  /**
+   * Sync wallet avec vérification approval
+   * 
+   * FLOW :
+   * 1. Vérifier approval Marketplace
+   * 2. Si pas approuvé → Modal approval
+   * 3. Si approuvé → Sync wallet
+   */
+  const handleSyncWallet = async (address: string) => {
+    console.log('🔄 Sync wallet:', address);
+
+    // 1. Vérifier approval
+    const approvalCheck = await checkMarketplaceApproval(address);
+
+    if (!approvalCheck.isApproved) {
+      console.log('⚠️ Marketplace non approuvé, affichage modal');
+      setPendingSyncAddress(address);
+      setShowApprovalModal(true);
+      return;
+    }
+
+    // 2. Approuvé → Sync
+    console.log('✅ Marketplace approuvé, sync wallet');
+    await syncWalletAddress(address);
+  };
+
+  /**
+   * Gérer confirmation approval
+   */
+  const handleApprovalConfirmed = async () => {
+    if (!pendingSyncAddress) return;
+
+    console.log('✅ Approval confirmé, sync wallet');
+    await syncWalletAddress(pendingSyncAddress);
+    
+    setShowApprovalModal(false);
+    setPendingSyncAddress(null);
+  };
+
+  /**
+   * Gérer rejet approval
+   */
+  const handleApprovalRejected = () => {
+    console.log('❌ User a rejeté l\'approval');
+    setShowApprovalModal(false);
+    setPendingSyncAddress(null);
+  };
+
+  return (
+    <WalletProvider>
+      {/* Contenu */}
+      
+      {/* ✅ Modal approval réutilisée depuis SellCardForm */}
+      <BaseModal
+        isOpen={showApprovalModal}
+        onClose={handleApprovalRejected}
+        title="Autorisation Marketplace Requise"
+        size="md"
+      >
+        <Flex direction="column" gap={4}>
+          <Text>
+            Pour sécuriser vos NFTs, vous devez autoriser le Marketplace 
+            à les gérer. Cela permettra :
+          </Text>
+          <UnorderedList spacing={2} pl={4}>
+            <ListItem>✅ Migration automatique de vos NFTs</ListItem>
+            <ListItem>✅ Récupération en cas d'échec</ListItem>
+            <ListItem>✅ Ventes futures sans signature supplémentaire</ListItem>
+          </UnorderedList>
+          
+          <Alert status="info">
+            <AlertIcon />
+            <Box>
+              <AlertTitle>Autorisation permanente</AlertTitle>
+              <AlertDescription>
+                Vous ne signerez qu'une seule fois. 
+                Toutes les migrations et ventes futures fonctionneront automatiquement.
+              </AlertDescription>
+            </Box>
+          </Alert>
+
+          {approvalStatus === 'pending' && (
+            <Flex justify="center" align="center" py={4}>
+              <Spinner size="lg" color="blue.500" />
+              <Text ml={4}>Transaction en cours...</Text>
+            </Flex>
+          )}
+
+          {approvalStatus === 'error' && (
+            <Alert status="error">
+              <AlertIcon />
+              <AlertDescription>
+                Erreur lors de l'approbation. Veuillez réessayer.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <Flex gap={3} justify="flex-end">
+            <Button
+              variant="ghost"
+              onClick={handleApprovalRejected}
+              isDisabled={approvalStatus === 'pending'}
+            >
+              Annuler
+            </Button>
+            <Button
+              colorScheme="blue"
+              onClick={async () => {
+                const result = await approveMarketplace();
+                if (result.success) {
+                  // Attendre confirmation on-chain via approvalStatus hook
+                  // Le useEffect ci-dessous gérera la suite
+                }
+              }}
+              isLoading={approvalStatus === 'pending'}
+              loadingText="Signature en cours..."
+            >
+              Autoriser le Marketplace
+            </Button>
+          </Flex>
+        </Flex>
+      </BaseModal>
+    </WalletProvider>
+  );
+};
+
+// ✅ Détecter quand approval est confirmé on-chain
+useEffect(() => {
+  if (approvalStatus === 'success' && pendingSyncAddress) {
+    console.log('✅ Approval confirmé on-chain, lancement sync');
+    handleApprovalConfirmed();
+  }
+}, [approvalStatus, pendingSyncAddress]);
+```
+
+### Checklist Migration Sécurisée
+
+**Avant chaque migration :**
+- [ ] Vérifier `user.migratedAt` (skip si existe)
+- [ ] Vérifier `isApprovedForAll(userWallet, marketplace)` ✅ **CRITIQUE**
+- [ ] Si pas approuvé → ABORT migration
+- [ ] Si approuvé → Continuer migration
+
+**Pendant migration :**
+- [ ] Vérifier ownership NFTs on-chain
+- [ ] Batch max 50 NFTs
+- [ ] Utiliser `batchTransfer()` (fix transferFrom)
+- [ ] Logger chaque transfer dans address_activities
+
+**Après migration :**
+- [ ] Set `user.migrationStatus` (COMPLETED ou FAILED)
+- [ ] Set `user.migratedAt` (toujours, même si failed)
+- [ ] Update `nft.currentOwner` en DB
+- [ ] Envoyer notification user (email)
+
+**En cas d'échec :**
+- [ ] Si pas approuvé → Afficher modal approval
+- [ ] Si approuvé mais échec → Admin retry uniquement
+- [ ] Logger erreur détaillée
+- [ ] Alert monitoring (Slack)
+
+---
+
 ## 📝 HISTORIQUE DES VERSIONS
+
+### Version 2.3 (19 Novembre 2025 - Après-midi)
+- ✅ **Bug Critique Résolu** : Hook CDP `useSendUserOperation` retournait `status='success'` + `transactionHash` AVANT confirmation blockchain
+- ✅ **Cause racine** : Le `transactionHash` est retourné dès que UserOp est **soumise au bundler**, pas quand elle est **confirmée on-chain**
+- ✅ **Solution** : Backend endpoint `/marketplace/confirm-approval` utilise `provider.waitForTransaction()` (natif ethers.js)
+- ✅ **Avantages** : Pas de polling, pas de timeout arbitraire, méthode native asynchrone qui attend l'événement blockchain
+- ✅ **Fichiers modifiés** : `marketplace.controller.ts` L262-365 (endpoint avec waitForTransaction), `WalletContext.tsx` L357-478 (appel backend)
+- ✅ **Résultat** : Migration ne se lance PLUS si approval non confirmé, attente passive jusqu'à confirmation réelle
+
+### Version 2.2 (19 Novembre 2025 - Matin)
+- ✅ **Bug Critique Résolu** : `batchTransfer()` utilisait `_transfer()` qui passait `address(0)` comme `auth`
+- ✅ **Solution** : Remplacé par `transferFrom()` qui passe `msg.sender` (Master SA whitelisté)
+- ✅ **Migration Auto Retry** : Fix frontend cache `syncedAddresses` + backend `migratedAt` check
+- ✅ **Sécurité NFTs** : Vérification approval Marketplace AVANT migration/rewards
+- ✅ **Documentation complète** : Résumé exécutif avec tous les fixes + section migration sécurisée
+- ✅ **Script whitelist** : Correction `false` → `true` dans `1-whitelist-marketplace-v2.cjs`
 
 ### Version 2.1 (9 Novembre 2025)
 - ✅ **Smart Contract v5** : Ajout fonction `finalizeOffer()` atomique
@@ -2682,6 +3467,6 @@ mcp_Coinbase_Developer_SearchCoinbaseDeveloper({
 ---
 
 **Maintenu par :** Équipe CyLimit  
-**Date :** 9 Novembre 2025  
-**Version :** 2.1 - Architecture v5 Atomique + Tests Validés
+**Date :** 19 Novembre 2025  
+**Version :** 2.2 - Correctifs Critiques Contrat NFT + Migration Sécurisée
 

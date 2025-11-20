@@ -11,9 +11,61 @@ Point de référence unique pour comprendre où en est le projet à tout moment
 **COMMENT :**
 Consulter ce fichier AVANT toute nouvelle tâche. Mettre à jour APRÈS chaque tâche terminée.
 
-**DERNIÈRE MISE À JOUR :** 9 Novembre 2025 - 23h00
+**DERNIÈRE MISE À JOUR :** 19 Novembre 2025 - 11h00
 
 **STATUT :** Actif - Mis à jour régulièrement
+
+---
+
+## 🛡️ SÉCURITÉ MIGRATION & REWARDS NFT
+
+### Approval Marketplace Obligatoire
+
+**Date ajout :** 19 Novembre 2025
+
+**Problématique identifiée :**
+Si les NFTs sont transférés vers un Embedded Wallet qui n'a **pas approuvé le Marketplace**, et que la migration/reward échoue, les NFTs sont **bloqués définitivement** (impossibles à récupérer).
+
+**Solution implémentée :**
+
+#### 1️⃣ Migration Automatique NFTs
+- ✅ Backend vérifie `isApprovedForAll(userWallet, marketplace)` **AVANT** migration
+- ✅ Si pas approuvé → Migration ABORTED (erreur claire)
+- ✅ Frontend affiche modal "Approve Marketplace" **avant** sync wallet
+- ✅ Migration ne lance QUE si approval confirmé on-chain
+
+#### 2️⃣ Rewards NFT
+- ✅ Backend vérifie approval avant d'envoyer reward NFT
+- ✅ Si pas approuvé → Modal frontend demande approval
+- ✅ Reward envoyé QUE après confirmation approval
+
+#### 3️⃣ Flow Sécurisé
+
+```
+User crée Embedded Wallet
+    ↓
+Frontend détecte besoin migration/reward
+    ↓
+Vérifie isApprovedForAll(userWallet, marketplace)
+    ↓
+Pas approuvé ? → Modal "Approve Marketplace"
+    ↓
+User signe setApprovalForAll(marketplace, true)
+    ↓
+Confirmation on-chain ✅
+    ↓
+Backend lance migration/reward (NFTs récupérables)
+```
+
+**Fichiers modifiés :**
+- `migration.service.ts` : Vérification approval ligne 953-999
+- `WalletContext.tsx` : Fix cache `syncedAddresses` ligne 256-260
+- `useMarketplace.ts` : Fonction `approveMarketplace()` réutilisable
+
+**Impact sécurité :**
+- ✅ **Zéro risque** de perte NFT en cas d'échec migration
+- ✅ **Marketplace peut toujours récupérer** les NFTs si problème
+- ✅ **User protégé** contre blocage définitif
 
 ---
 
@@ -679,6 +731,14 @@ Pour toute modification sur ces sujets, **charger le contexte approprié AVANT**
 ## 📝 MODIFICATIONS RÉCENTES
 
 ### Novembre 2025
+
+- ✅ **19 Nov 11h00** : Correctifs critiques migration NFTs + sécurité
+  - 🔴 **Bug Critique** : `batchTransfer()` bloquait migrations (address(0) pas whitelisté)
+  - ✅ **Solution** : Remplacé `_transfer()` par `transferFrom()` dans contrat NFT
+  - ✅ **Migration Auto** : Fix retry infini (cache frontend + migratedAt backend)
+  - ✅ **Sécurité** : Approval Marketplace obligatoire AVANT migration/rewards
+  - ✅ **Prévention perte NFTs** : Vérification on-chain + modal approval frontend
+  - Fichiers : `CyLimitNFT_v2_181125.sol`, `migration.service.ts`, `WalletContext.tsx`
 
 - ✅ **9 Nov 23h00** : Configuration migration Google Cloud Run terminée
   - Analyse complète infrastructure AWS (ECS, Redis, logs, coûts ~240-320€/mois)
