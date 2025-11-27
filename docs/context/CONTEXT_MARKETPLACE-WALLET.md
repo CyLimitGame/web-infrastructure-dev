@@ -1,17 +1,17 @@
 # 🎯 VISION COMPLÈTE - WALLETS, NFT, MARKETPLACE & FLOWS CYLIMIT
 
-**Date :** 19 Novembre 2025  
-**Version :** 2.3 - Fix Hook CDP Approval Prématuré  
+**Date :** 26 Novembre 2025  
+**Version :** 2.4 - Architecture Finale `finalizeSwap` + Analyse Coûts Gas  
 **Objectif :** Document de référence unique pour la compréhension complète du système
 
 ---
 
 ## 💰 COÛT DE CHARGEMENT DE CE CONTEXTE
 
-**Taille du fichier :** ~2950 lignes  
-**Nombre de tokens :** ~36,875 tokens  
-**Coût par chargement :** ~$0.111 (à $3/M tokens input)  
-**Budget token restant après chargement :** ~963,125 tokens (sur 1M)
+**Taille du fichier :** 3518 lignes  
+**Nombre de tokens :** ~43,975 tokens  
+**Coût par chargement :** ~$0.132 (à $3/M tokens input)  
+**Budget token restant après chargement :** ~956,025 tokens (sur 1M)
 
 **⚠️ RÈGLE IMPORTANTE :**
 - ✅ **TOUJOURS mettre à jour ces chiffres** après chaque modification de ce fichier
@@ -20,7 +20,7 @@
 - ✅ Recalculer le coût : (nombre_tokens / 1,000,000) × $3
 - ✅ Mettre à jour la date de dernière modification
 
-**Dernière mise à jour compteurs :** 19 Novembre 2025 - 11h00
+**Dernière mise à jour compteurs :** 26 Novembre 2025 - 18h00
 
 ---
 
@@ -33,10 +33,11 @@
 5. [Marketplace - Marché Primaire](#marketplace---marché-primaire)
 6. [Marketplace - Marché Secondaire](#marketplace---marché-secondaire)
 7. [Flows d'Achats et Ventes](#flows-dachats-et-ventes)
-8. [Sécurité et Contrôle](#sécurité-et-contrôle)
-9. [Intégration Coinbase](#intégration-coinbase)
-10. [🚨 PROBLÈMES CRITIQUES IDENTIFIÉS & SOLUTIONS](#-problèmes-critiques-identifiés--solutions)
-11. [Migration NFTs Sécurisée](#migration-nfts-sécurisée)
+8. [💰 ANALYSE COÛTS GAS & ARCHITECTURE FINALE](#-analyse-coûts-gas--architecture-finale)
+9. [Sécurité et Contrôle](#sécurité-et-contrôle)
+10. [Intégration Coinbase](#intégration-coinbase)
+11. [🚨 PROBLÈMES CRITIQUES IDENTIFIÉS & SOLUTIONS](#-problèmes-critiques-identifiés--solutions)
+12. [Migration NFTs Sécurisée](#migration-nfts-sécurisée)
 
 ---
 
@@ -742,93 +743,90 @@ const handleBuy = async () => {
 };
 ```
 
-**Flow détaillé (useMarketplace.buyNFT) :**
+**Flow détaillé (useMarketplace.buyNFT) - Architecture v7 :**
 
 ```typescript
-// Hook: useMarketplace.ts (CONFORME DOCUMENTATION COINBASE)
+// Hook: useMarketplace.ts (ARCHITECTURE v7)
 
 async function buyNFT(listingId: string) {
   // 1. Backend prépare l'achat (vérifications)
-  const prepareResponse = await axios.post(
-    `/marketplace/buy/${listingId}`,
-    {},
-    { headers: { Authorization: `Bearer ${token}` } }
+  const prepareResponse = await fetch(
+    `${API_URL}/marketplace/buy/${listingId}`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }
   );
 
-  const buyData = prepareResponse.data;
-  // → { nft, seller, buyer, price, fees, contracts }
+  const buyData = await prepareResponse.json();
+  // → { listingId, nft, seller, buyer, price, fees, contracts, amounts }
 
-  // 2. Frontend construit batch transaction (ERC-4337)
-  // ⚠️ IMPORTANT : calls[] peut contenir plusieurs opérations
-  // Toutes seront exécutées atomiquement (tout ou rien)
-  const calls = [
-    // Call 1: Transfer USDC → Seller (95 USDC)
-    {
-      to: buyData.contracts.usdc as `0x${string}`, // Type strict viem
-      data: encodeFunctionData({
-        abi: ERC20_ABI,
-        functionName: 'transfer',
-        args: [
-          buyData.seller.address,
-          BigInt(Math.floor(buyData.amounts.sellerReceives * 1e6))
-        ]
-      }) as `0x${string}` // Type strict viem
-    },
-    
-    // Call 2: Transfer fees → CyLimit (5 USDC)
-    {
-      to: buyData.contracts.usdc as `0x${string}`,
-      data: encodeFunctionData({
-        abi: ERC20_ABI,
-        functionName: 'transfer',
-        args: [
-          buyData.contracts.masterWallet,
-          BigInt(Math.floor(buyData.fees.total * 1e6))
-        ]
-      }) as `0x${string}`
-    },
-    
-    // Call 3: Buy NFT (Marketplace transfère le NFT)
-    {
-      to: buyData.contracts.marketplace as `0x${string}`,
-      data: encodeFunctionData({
-        abi: MARKETPLACE_ABI,
-        functionName: 'buyNFT',
-        args: [BigInt(buyData.nft.tokenId), buyData.seller.address]
-      }) as `0x${string}`
-    }
-  ];
+  // 2. Frontend : User approve USDC au marketplace
+  // ⚠️ IMPORTANT : User approve, mais ne transfère PAS directement
+  // Le backend va appeler finalizeSwap qui utilisera transferFrom()
+  const approveCall = {
+    to: buyData.contracts.usdc as `0x${string}`,
+    data: encodeFunctionData({
+      abi: ERC20_ABI,
+      functionName: 'approve',
+      args: [
+        buyData.contracts.marketplace as `0x${string}`,
+        BigInt(Math.floor(buyData.amounts.totalWithFees * 1e6)) // Prix + fees
+      ]
+    }) as `0x${string}`
+  };
 
-  // 3. Frontend envoie UserOperation (User signe)
+  // 3. Frontend envoie UserOperation (User signe approve uniquement)
   // ✅ CONFORME COINBASE DOCS : useSendUserOperation
-  const result = await sendUserOp({
-    network: 'base-sepolia', // ou 'base' pour mainnet
-    calls: calls,
-    // Option 1 : CDP Paymaster (Base uniquement) - RECOMMANDÉ
-    useCdpPaymaster: true,
-    // Option 2 : Custom Paymaster URL (autre réseau ou custom)
-    // paymasterUrl: "https://api.developer.coinbase.com/rpc/v1/base/...",
+  await sendUserOp({
+    network: BLOCKCHAIN_CONFIG.network as 'base-sepolia' | 'base',
+    calls: [approveCall],
+    useCdpPaymaster: true, // Sponsorisé par CDP Paymaster
   });
 
-  console.log('✅ UserOperation Hash:', result.userOperationHash);
-  // Note : result.transactionHash sera disponible après confirmation
-
-  // 4. Frontend confirme au backend (mise à jour DB)
-  await axios.post(
-    `/marketplace/confirm-buy`,
+  // 4. Frontend notifie backend pour finaliser
+  // Backend va appeler finalizeSwap() (atomique : USDC + NFT)
+  const confirmResponse = await axios.post(
+    `${API_URL}/marketplace/confirm-buy`,
     {
       listingId: buyData.listingId,
-      transactionHash: result.userOperationHash
+      // Pas besoin de transactionHash (backend gère tout)
     },
-    { headers: { Authorization: `Bearer ${token}` } }
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
   );
 
-  return {
-    success: true,
-    txHash: result.userOperationHash,
-    explorerUrl: `https://sepolia.basescan.org/tx/${result.userOperationHash}`
-  };
+  return confirmResponse.data;
+  // → { success: true, transactionHash: "0x...", ... }
 }
+```
+
+**Ce qui se passe dans le backend (confirmBuyNFT) :**
+
+```typescript
+// Backend appelle finalizeSwap via Admin Backend
+await adminBackendClient.finalizeSwap(
+  '0x0000000000000000000000000000000000000000000000000000000000000000', // Pas d'escrow
+  buyer.walletAddress,      // userA (buyer)
+  seller.walletAddress,      // userB (seller)
+  [],                       // tokenIdsFromA (buyer ne donne rien)
+  [nft.tokenId.toString()], // tokenIdsFromB (NFT vendu)
+  sellerNetAmount,          // USDC net pour seller (prix - seller fees)
+  BLOCKCHAIN_CONFIG.masterWalletAddress, // feeRecipient
+  totalFees                // Fee amount (seller fees + buyer fees)
+);
+
+// Dans finalizeSwap() :
+// 1. transferFrom(buyer → seller, netAmount) ✅
+// 2. transferFrom(buyer → masterWallet, fees) ✅
+// 3. transferFrom(seller → buyer, tokenId) ✅
+// Tout atomique dans 1 transaction !
 ```
 
 **⚠️ Notes Importantes (Documentation Coinbase) :**
@@ -870,33 +868,35 @@ async function buyNFT(listingId: string) {
    }
    ```
 
-**Ce que voit le User :**
+**Ce que voit le User (Architecture v7) :**
 ```
 1. Clic "Buy Now for 105 USDC"
    ↓
-2. Loading... (10-30 secondes)
+2. Loading... "Préparation de l'achat..."
    ↓
 3. Popup Coinbase Wallet apparaît
    ┌──────────────────────────────────────┐
    │  🔐 Coinbase Wallet                  │
    │                                      │
-   │  Confirm Transaction                 │
+   │  Approve USDC                        │
    │                                      │
-   │  Operations (3):                     │
-   │  • Transfer 95 USDC → Seller         │
-   │  • Transfer 5 USDC → CyLimit         │
-   │  • Buy NFT #123                      │
+   │  Allow CyLimit Marketplace to       │
+   │  spend 105 USDC?                    │
    │                                      │
    │  ⛽ Gas: $0 (Sponsored by CyLimit)   │
    │                                      │
-   │  [Cancel]  [Confirm] ← User clique   │
+   │  [Cancel]  [Approve] ← User clique   │
    └──────────────────────────────────────┘
    ↓
-4. Transaction en cours...
+4. Loading... "Finalisation de l'achat..."
+   (Backend appelle finalizeSwap en arrière-plan)
    ↓
 5. ✅ Success !
    "Purchase successful! You are now the owner of NFT #123"
    [View transaction on Basescan Testnet]
+   
+Note : L'utilisateur ne voit QUE l'approve USDC.
+Le backend gère finalizeSwap() automatiquement.
 ```
 
 #### C. Approuver le Marketplace (1× au premier listing)
@@ -1246,33 +1246,30 @@ const isWhitelisted = await nftContract.isWhitelisted(MARKETPLACE_CONTRACT_ADDRE
 console.log('Marketplace whitelisté :', isWhitelisted); // true ✅
 ```
 
-### 2. CyLimitMarketplace_v5_SecureOffer.sol
+### 2. CyLimitMarketplace_v7.sol
 
-**Philosophie : Sécurité Maximale + Transactions Atomiques**
+**Philosophie : Sécurité Maximale + Transactions Atomiques + Fonction Unifiée**
 
-**⚠️ IMPORTANT : Le contrat est désormais référencé comme v5 (implémentation finale avec `finalizeOffer` atomique)**
+**⚠️ IMPORTANT : Le contrat actuel est v7 (implémentation finale avec `finalizeSwap` unifié)**
 
 ```solidity
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
 /**
- * @title CyLimit NFT Marketplace v5 (Escrow Sécurisé + Atomique)
- * @notice Marketplace avec escrow USDC verrouillé par offre ET target + finalisation atomique
- * @dev Design v5:
- * - Escrow par offerId avec target verrouillé on-chain
- * - Collection Offers supportées (target = address(0))
- * - Database injection impossible
- * - Backend ne peut pas rediriger les fonds
- * - finalizeOffer atomique (USDC + NFTs en une transaction)
+ * @title CyLimit NFT Marketplace v7 (Fonction Unifiée)
+ * @notice Marketplace avec escrow USDC optionnel + finalisation atomique unifiée
+ * @dev Design v7:
+ * - Fonction unifiée `finalizeSwap()` pour TOUS les cas (achat, swap, escrow)
+ * - Escrow USDC optionnel (offerId != 0x0) ou direct (offerId = 0x0)
+ * - Gestion fees atomique (net + fees en une transaction)
+ * - Backend-controlled (onlyOwner) pour sécurité maximale
+ * - Pas de whitelist buyer nécessaire
+ * - Support swaps complexes (NFTs + USDC dans les deux sens)
  */
 contract CyLimitMarketplace is Ownable, ReentrancyGuard {
     IERC721 public nftContract;
     IERC20 public usdcContract;
-    
-    // ═══════════════════════════════════════════════════════════════════════
-    // STRUCTS & STATE
-    // ═══════════════════════════════════════════════════════════════════════
     
     struct OfferEscrow {
         address initiator;      // Celui qui fait l'offre
@@ -1283,76 +1280,74 @@ contract CyLimitMarketplace is Ownable, ReentrancyGuard {
     }
     
     mapping(bytes32 => OfferEscrow) public offers;  // Escrow par offre
-    mapping(address => uint256) public escrowedUSDC; // Escrow pour enchères
+    mapping(address => uint256) public escrowedUSDC; // Escrow global (autres cas)
     uint256 public totalSales;
     
     // ═══════════════════════════════════════════════════════════════════════
-    // ESCROW PAR OFFRE (Offres 1-to-1 + Collection Offers)
+    // FONCTION UNIFIÉE : finalizeSwap()
     // ═══════════════════════════════════════════════════════════════════════
     
-    // Escrow USDC pour offre
-    // target = address spécifique → Offre 1-to-1
-    // target = address(0) → Collection Offer (public)
+    /**
+     * @notice Échange atomique de NFTs avec USDC optionnel (FONCTION UNIFIÉE)
+     * @dev Gère TOUS les types d'échanges :
+     * - Achat simple (offerId = 0x0, tokenIdsFromA = [], tokenIdsFromB = [tokenId])
+     * - Achat avec escrow (offerId != 0x0)
+     * - Swap NFT ↔ NFT (usdcAmount = 0)
+     * - Swap NFT + USDC ↔ NFTs (tous cas complexes)
+     */
+    function finalizeSwap(
+        bytes32 offerId,           // 0x0 = pas d'escrow, sinon ID escrow
+        address userA,             // Buyer ou initiator
+        address userB,             // Seller ou target
+        uint256[] calldata tokenIdsFromA,  // NFTs de A vers B (vide pour achat simple)
+        uint256[] calldata tokenIdsFromB,  // NFTs de B vers A (toujours au moins 1)
+        uint256 usdcAmount,        // Montant net pour userB (sans fees)
+        address feeRecipient,     // Adresse qui reçoit les fees (0x0 si pas de fees)
+        uint256 feeAmount         // Montant des fees marketplace
+    ) external onlyOwner nonReentrant;
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // ESCROW PAR OFFRE (Pour offres 1-to-1 + Collection Offers)
+    // ═══════════════════════════════════════════════════════════════════════
+    
     function escrowUSDCForOffer(bytes32 offerId, address target, uint256 amount) external;
-    
-    // Cancel offre → Refund initiator
     function releaseUSDCFromOffer(bytes32 offerId) external onlyOwner;
-    
-    // ✅ v5 NEW: Finalisation atomique (USDC + NFTs en une transaction)
-    function finalizeOffer(bytes32 offerId, address acceptor, uint256[] tokenIds) external onlyOwner;
-    
-    // ⚠️ DEPRECATED v5: Remplacé par finalizeOffer (garde pour rétrocompatibilité)
-    function transferEscrowedUSDCFromOffer(bytes32 offerId, address acceptor) external onlyOwner;
-    
-    // Vérifier offre on-chain
     function getOffer(bytes32 offerId) external view returns (...);
-    
-    // Emergency withdraw (tracé on-chain)
     function emergencyWithdrawOffer(bytes32 offerId) external onlyOwner;
     
     // ═══════════════════════════════════════════════════════════════════════
-    // DIRECT BUY (Batch Transaction)
+    // ESCROW GLOBAL (Autres cas d'usage)
     // ═══════════════════════════════════════════════════════════════════════
-    
-    // Acheter plusieurs NFTs en 1 transaction (supporte 1 seul NFT)
-    function buyMultipleNFTs(uint256[] calldata tokenIds, address[] calldata sellers) external;
-    
-    // ═══════════════════════════════════════════════════════════════════════
-    // ESCROW GLOBAL (Autres cas d'usage - PAS pour enchères)
-    // ═══════════════════════════════════════════════════════════════════════
-    // ⚠️ NOTE : Les enchères utilisent escrowUSDCForOffer() avec bidId unique
-    // Ce système global est gardé pour d'autres cas d'usage futurs
     
     function escrowUSDC(uint256 amount) external;
     function releaseUSDC(address user, uint256 amount) external onlyOwner;
     function transferUSDC(address from, address to, uint256 amount) external onlyOwner;
-    
-    // Batch refund (optimisation gas - autres cas d'usage)
     function batchReleaseUSDC(address[] calldata users, uint256[] calldata amounts) external onlyOwner;
 }
 ```
 
-**Utilisations des fonctions escrow :**
+**Utilisations de `finalizeSwap()` :**
 
-| Cas d'usage | Fonction utilisée | Flow |
-|-------------|------------------|------|
-| **Buy Offer 1-to-1** | escrowUSDCForOffer(target) → transferEscrowedUSDCFromOffer() | Buyer escrow → Transfer au seller ciblé |
-| **Collection Offer** | escrowUSDCForOffer(address(0)) → transferEscrowedUSDCFromOffer(acceptor) | Buyer escrow → Transfer au premier seller |
-| **Swap avec USDC** | escrowUSDCForOffer(target) → transferEscrowedUSDCFromOffer() | Initiator escrow → Transfer au target |
-| **Enchère** | escrowUSDCForOffer(bidId) → releaseUSDCFromOffer() / transferEscrowedUSDCFromOffer() | Bidder escrow par bidId → Refund losers + Transfer CyLimit |
-| **Cancel Offer** | releaseUSDCFromOffer() | Refund initiator automatique |
+| Cas d'usage | Paramètres | Flow |
+|-------------|-----------|------|
+| **Achat simple marketplace** | `offerId=0x0, userA=buyer, userB=seller, tokenIdsFromA=[], tokenIdsFromB=[tokenId], usdcAmount=net, feeRecipient=masterWallet, feeAmount=fees` | User approve USDC → Backend appelle finalizeSwap |
+| **Achat avec escrow** | `offerId=hash, userA=buyer, userB=seller, tokenIdsFromA=[], tokenIdsFromB=[tokenId], usdcAmount=net, feeRecipient=masterWallet, feeAmount=fees` | User escrow USDC → Backend appelle finalizeSwap |
+| **Swap NFT ↔ NFT** | `offerId=0x0, userA=swapperA, userB=swapperB, tokenIdsFromA=[id1,id2], tokenIdsFromB=[id3], usdcAmount=0, feeRecipient=0x0, feeAmount=0` | Backend appelle finalizeSwap directement |
+| **Swap NFT + USDC ↔ NFTs** | `offerId=0x0, userA=swapperA, userB=swapperB, tokenIdsFromA=[id1], tokenIdsFromB=[id2,id3], usdcAmount=100, feeRecipient=0x0, feeAmount=0` | User approve USDC → Backend appelle finalizeSwap |
 
-**Avantages architecture v5 :**
-- ✅ **Target verrouillé on-chain** (sécurité maximale)
-- ✅ **Collection Offers supportées** (address(0) = public)
-- ✅ **Database injection impossible** (smart contract = source de vérité)
-- ✅ **Backend ne peut pas voler** (destinations fixes on-chain)
-- ✅ **Batch operations** (optimisation gas)
-- ✅ **Emergency withdraw** (tracé on-chain)
-- ✅ **Validation on-chain** (getOffer pour vérifier)
-- ✅ **✨ NEW v5: Transactions atomiques** (USDC + NFTs = tout ou rien)
-- ✅ **✨ NEW v5: Escrow verification** (vérifie on-chain avant finalisation)
-- ✅ **✨ NEW v5: MongoDB schema amélioré** (txHashEscrow + ObjectId corrects)
+**⚠️ FONCTIONS SUPPRIMÉES (Sécurité) :**
+- ❌ `buyMultipleNFTs()` : Supprimée (faille sécurité - bypass backend)
+- ❌ `finalizeOffer()` : Remplacée par `finalizeSwap()` (fonction unifiée)
+
+**Avantages architecture v7 :**
+- ✅ **Fonction unifiée** : 1 seule fonction pour tous les cas
+- ✅ **Backend-controlled** : Seul backend peut finaliser (onlyOwner)
+- ✅ **Atomicité garantie** : USDC + NFTs transférés ensemble
+- ✅ **Gestion fees atomique** : Net + fees en une transaction
+- ✅ **Flexibilité** : Support escrow optionnel ou direct
+- ✅ **Sécurité maximale** : Pas de bypass possible (buyMultipleNFTs supprimée)
+- ✅ **Batch NFTs** : Support jusqu'à 50 NFTs par côté
+- ✅ **Coût optimal** : $0.0078-0.0107 selon cas
 
 ---
 
@@ -1421,108 +1416,95 @@ await userWallet.invokeContract({
 
 ### 2. Approvals USDC (ERC-20)
 
-**⚠️ IMPORTANT : Dans l'architecture CyLimit, PAS besoin d'approuver USDC au Marketplace !**
+**⚠️ IMPORTANT : Dans l'architecture CyLimit v7, User DOIT approuver USDC au Marketplace !**
 
 **Pourquoi ?**
 
-Les users utilisent `transfer()` (transfert direct), **PAS** `transferFrom()` (transfert délégué).
+Le backend appelle `finalizeSwap()` qui utilise `transferFrom()` pour transférer USDC du buyer vers seller et fees.
 
-**Architecture CyLimit (Batch Transaction) :**
+**Architecture CyLimit v7 (Approve + Backend finalizeSwap) :**
 
 ```typescript
-// Dans la batch transaction d'achat :
-const calls = [
-  // ✅ Call 1: User transfère DIRECTEMENT ses USDC au seller
-  {
-    to: USDC_CONTRACT,
-    data: encodeFunctionData({
-      abi: ERC20_ABI,
-      functionName: 'transfer', // ← DIRECT, pas besoin d'approval
-      args: [seller, 95 * 1e6]
-    })
-  },
-  
-  // ✅ Call 2: User transfère DIRECTEMENT les fees à CyLimit
-  {
-    to: USDC_CONTRACT,
-    data: encodeFunctionData({
-      abi: ERC20_ABI,
-      functionName: 'transfer', // ← DIRECT, pas besoin d'approval
-      args: [cylimit, 5 * 1e6]
-    })
-  },
-  
-  // Call 3: Marketplace transfère le NFT (utilise son approval NFT)
-  {
-    to: MARKETPLACE_CONTRACT,
-    data: 'buyNFT(tokenId, seller)'
-  }
-];
+// Flow d'achat v7 :
+// 1. User approve USDC au marketplace
+const approveCall = {
+  to: USDC_CONTRACT,
+  data: encodeFunctionData({
+    abi: ERC20_ABI,
+    functionName: 'approve', // ← APPROVAL requis
+    args: [MARKETPLACE_CONTRACT, totalWithFees]
+  })
+};
 
-// ✅ User signe la batch → Exécutée depuis son Smart Account
-// ✅ USDC transférés directement (pas via Marketplace)
-// ✅ PAS BESOIN d'approve USDC au Marketplace
+await sendUserOp({ calls: [approveCall] });
+
+// 2. Backend appelle finalizeSwap() (atomique)
+// Dans finalizeSwap() :
+usdcContract.transferFrom(buyer, seller, netAmount);      // ← Utilise approval
+usdcContract.transferFrom(buyer, masterWallet, fees);     // ← Utilise approval
+nftContract.transferFrom(seller, buyer, tokenId);         // ← Utilise approval NFT seller
 ```
 
 **Différence `transfer()` vs `transferFrom()` :**
 
-| Fonction | Qui appelle ? | Besoin Approval ? | Usage CyLimit |
-|----------|---------------|-------------------|---------------|
-| **`transfer(to, amount)`** | User lui-même | ❌ Non | ✅ OUI (dans batch) |
-| **`transferFrom(from, to, amount)`** | Tiers (Marketplace) | ✅ Oui | ❌ NON |
+| Fonction | Qui appelle ? | Besoin Approval ? | Usage CyLimit v7 |
+|----------|---------------|-------------------|------------------|
+| **`transfer(to, amount)`** | User lui-même | ❌ Non | ❌ NON (pas utilisé) |
+| **`transferFrom(from, to, amount)`** | Tiers (Marketplace) | ✅ Oui | ✅ **OUI** (dans finalizeSwap) |
 
-**Différence NFT vs USDC dans CyLimit :**
+**Différence NFT vs USDC dans CyLimit v7 :**
 
 | | NFT (ERC-721) | USDC (ERC-20) |
 |---|---------------|---------------|
-| **Approval nécessaire ?** | ✅ Oui (`setApprovalForAll` au Marketplace) | ❌ **NON** (transfer direct) |
-| **Qui transfère ?** | Marketplace (avec approval) | User (lui-même) |
-| **Méthode utilisée** | `transferFrom(seller, buyer, tokenId)` | `transfer(recipient, amount)` |
-| **Fréquence signature** | 1× (premier listing) | 0× (inclus dans batch) |
+| **Approval nécessaire ?** | ✅ Oui (`setApprovalForAll` au Marketplace) | ✅ **OUI** (`approve` au Marketplace) |
+| **Qui transfère ?** | Marketplace (avec approval) | Marketplace (avec approval) |
+| **Méthode utilisée** | `transferFrom(seller, buyer, tokenId)` | `transferFrom(buyer, seller, amount)` |
+| **Fréquence signature** | 1× (premier listing) | 1× par achat (approve USDC) |
 
-**Pourquoi NFT nécessite approval mais pas USDC ?**
+**Pourquoi les deux nécessitent approval ?**
 
 ```
 NFT :
-- Seller ne peut PAS être dans la batch du Buyer
-- Marketplace DOIT transférer au nom du Seller
-- → Approval requis (setApprovalForAll)
+- Seller approuve Marketplace (setApprovalForAll)
+- Marketplace transfère NFT au nom du Seller
+- → Approval requis ✅
 
 USDC :
-- Buyer transfère ses PROPRES USDC
-- Pas besoin de Marketplace comme intermédiaire
-- → PAS d'approval requis (transfer direct)
+- Buyer approuve Marketplace (approve)
+- Marketplace transfère USDC au nom du Buyer (seller + fees)
+- → Approval requis ✅
+- Architecture v7 : Backend contrôle tout via finalizeSwap()
 ```
 
-### 3. Récapitulatif Approvals par Cas d'Usage
+### 3. Récapitulatif Approvals par Cas d'Usage (v7)
 
 | Cas d'usage | User A (Seller) | User B (Buyer) | Total signatures |
 |-------------|-----------------|----------------|------------------|
 | **Premier listing** | ✅ `setApprovalForAll(NFT)` | - | 1 |
 | **Listings suivants** | ❌ Rien (DB) | - | 0 |
-| **Acheter NFT** | ❌ Rien | ✅ Batch (USDC transfer + buyNFT) | 1 |
-| **Swap NFT ↔ NFT** | ❌ Rien | ✅ Batch NFT transfers | 1 |
-| **Swap NFT+USDC ↔ NFT** | ❌ Rien | ✅ Batch USDC + NFT | 1 |
+| **Acheter NFT** | ❌ Rien | ✅ `approve(USDC)` → Backend finalizeSwap | 1 |
+| **Swap NFT ↔ NFT** | ❌ Rien | ❌ Rien (Backend finalizeSwap direct) | 0 |
+| **Swap NFT+USDC ↔ NFT** | ❌ Rien | ✅ `approve(USDC)` → Backend finalizeSwap | 1 |
 | **Burn NFT** | ✅ `approve(tokenId)` | - | 1 |
 
-**⚠️ CLARIFICATION IMPORTANTE : Approvals USDC**
+**⚠️ CLARIFICATION IMPORTANTE : Approvals USDC v7**
 
 ```
-❌ FAUX : User doit approve USDC au Marketplace
-✅ VRAI : User utilise transfer() direct (pas d'approval requis)
+✅ VRAI : User DOIT approve USDC au Marketplace
 
 Raison :
-- Batch transaction exécutée depuis le Smart Account du Buyer
-- Buyer transfère ses PROPRES USDC (via transfer())
-- Marketplace ne touche JAMAIS aux USDC
-- Marketplace transfère uniquement le NFT (via approval NFT du Seller)
+- Backend appelle finalizeSwap() qui utilise transferFrom()
+- transferFrom() nécessite approval préalable
+- User approve avant, backend finalise après
+- Architecture sécurisée : Backend contrôle tout
 ```
 
 **Conclusion :**
 - **Seller** : Signe **1× au début** (`setApprovalForAll` pour NFT), puis **plus jamais**
-- **Buyer** : Signe **1× par achat** (batch incluant transfers USDC direct)
+- **Buyer** : Signe **1× par achat** (`approve` USDC au marketplace)
+- **Backend** : Appelle `finalizeSwap()` après approval (atomique : USDC + NFT)
 - **Owner** : Signe **1× par burn** (`approve(tokenId)` spécifique)
-- **USDC** : ❌ **AUCUNE approval Marketplace requise** (architecture optimisée)
+- **USDC** : ✅ **Approval Marketplace REQUIS** (architecture v7 sécurisée)
 
 ---
 
@@ -1786,85 +1768,145 @@ async finalizeAuction(auctionId: string) {
 └──────────────────────────┘
 ```
 
-**Flow Achat (Batch USDC + NFT) :**
+**Flow Achat (Approve USDC + Backend finalizeSwap) :**
 
 ```
 ┌─────────────────┐
 │  USER B (Buyer) │
 └────────┬────────┘
-         │ 4. Buy NFT #123
+         │ 1. Clic "Buy NFT #123"
+         ↓
+┌──────────────────────────┐
+│  FRONTEND                │
+│  POST /marketplace/buy   │
+└────────┬─────────────────┘
+         │ 2. Backend prépare (vérifications)
+         ↓
+┌──────────────────────────┐
+│  BACKEND                 │
+│  - Vérifie listing actif │
+│  - Calcule fees          │
+│  - Retourne contracts    │
+└────────┬─────────────────┘
+         │ 3. User approve USDC
          ↓
 ┌──────────────────────────────────────┐
-│  SMART ACCOUNT (Buyer) - BATCH      │
+│  SMART ACCOUNT (Buyer)               │
 │                                      │
-│  Op 1: USDC → Seller (95 USDC)      │
-│  Op 2: USDC → CyLimit (5 USDC fees) │
-│  Op 3: buyNFT(tokenId)               │
+│  approve(marketplace, totalWithFees) │
 │                                      │
-│  Gas: $0 (Paymaster)                │
+│  Gas: $0 (Paymaster sponsorise)     │
+└────────┬─────────────────────────────┘
+         │ 4. Frontend confirme au backend
+         ↓
+┌──────────────────────────────────────┐
+│  BACKEND (Master Wallet)             │
+│                                      │
+│  finalizeSwap(                       │
+│    0x0,                              │
+│    buyer,                            │
+│    seller,                           │
+│    [],                               │
+│    [tokenId],                        │
+│    netAmount,                        │
+│    masterWallet,                     │
+│    fees                              │
+│  )                                   │
+│  → transferFrom(buyer → seller, net) │
+│  → transferFrom(buyer → master, fees)│
+│  → transferFrom(seller → buyer, NFT) │
+│                                      │
+│  Gas: ~195,000 = $0.0078            │
 └──────────────────────────────────────┘
 ```
 
-**Code Backend :**
+**Code Frontend (useMarketplace.ts) :**
 
 ```typescript
 /**
- * OBJECTIF : Lister un NFT (DB uniquement, $0 gas)
+ * OBJECTIF : Acheter un NFT listé
+ * 
+ * FLOW :
+ * 1. Backend prépare l'achat (vérifications)
+ * 2. User approve USDC au marketplace
+ * 3. Backend appelle finalizeSwap (atomique)
  */
-async listNFT(userId: string, tokenId: number, priceUSDC: number) {
-  const nft = await this.nftModel.findOne({ tokenId, ownerId: userId });
-  if (!nft) throw new Error('NFT not owned');
-
-  // Sauvegarder en DB uniquement
-  const listing = await this.listingModel.create({
-    nftId: nft._id,
-    sellerId: userId,
-    price: priceUSDC,
-    status: 'active'
+async buyNFT(listingId: string) {
+  // 1. Backend prépare
+  const prepareResponse = await fetch(`${API_URL}/marketplace/buy/${listingId}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` }
   });
-
-  console.log(`✅ NFT listé en DB (Gas: $0)`);
-  return { success: true, listingId: listing._id };
-}
-
-/**
- * OBJECTIF : Acheter un NFT listé (batch USDC + NFT)
- */
-async buyNFT(userId: string, listingId: string) {
-  const listing = await this.listingModel.findById(listingId);
-  const seller = await this.userModel.findById(listing.sellerId);
+  const buyData = await prepareResponse.json();
   
-  const price = listing.price;
-  const fees = price * 0.05; // 5% fees
-
-  // Batch transaction
-  const batch = [
-    // Op 1 : USDC → Seller
-    { to: USDC, data: 'transfer(seller, price)' },
-    // Op 2 : USDC fees → CyLimit
-    { to: USDC, data: 'transfer(cylimit, fees)' },
-    // Op 3 : Buy NFT
-    { to: MARKETPLACE, data: 'buyNFT(tokenId)' }
-  ];
-
-  const buyOp = await this.coinbaseService.sendUserOperation({
-    userAddress: user.baseWalletAddress,
-    calls: batch,
-    paymasterUrl: process.env.PAYMASTER_URL
+  // 2. User approve USDC
+  const approveCall = {
+    to: buyData.contracts.usdc,
+    data: encodeFunctionData({
+      abi: ERC20_ABI,
+      functionName: 'approve',
+      args: [
+        buyData.contracts.marketplace,
+        BigInt(Math.floor(buyData.amounts.totalWithFees * 1e6))
+      ]
+    })
+  };
+  
+  await sendUserOp({
+    network: BLOCKCHAIN_CONFIG.network,
+    calls: [approveCall],
+    useCdpPaymaster: true
   });
+  
+  // 3. Backend finalise (appelle finalizeSwap)
+  await axios.post(`${API_URL}/marketplace/confirm-buy`, {
+    listingId: buyData.listingId
+  }, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+}
+```
 
-  await buyOp.wait();
+**Code Backend (marketplace.service.ts) :**
 
+```typescript
+/**
+ * OBJECTIF : Confirmer achat NFT (appelle finalizeSwap)
+ */
+async confirmBuyNFT(userId: string, listingId: string) {
+  const listing = await this.listingModel.findById(listingId).populate('nftId sellerId');
+  const buyer = await this.userModel.findById(userId);
+  
+  // Calculer fees
+  const sellerFees = calculateSellerFees(listing.price);
+  const buyerFees = calculateBuyerFees(listing.price);
+  const sellerNetAmount = listing.price - sellerFees;
+  const totalFees = sellerFees + buyerFees;
+  
+  // Appeler Admin Backend pour finalizeSwap
+  const result = await this.adminBackendClient.finalizeSwap(
+    '0x0000000000000000000000000000000000000000000000000000000000000000', // Pas d'escrow
+    buyer.walletAddress,      // userA (buyer)
+    seller.walletAddress,     // userB (seller)
+    [],                       // tokenIdsFromA (buyer ne donne rien)
+    [nft.tokenId.toString()], // tokenIdsFromB (NFT vendu)
+    sellerNetAmount,          // USDC net pour seller
+    BLOCKCHAIN_CONFIG.masterWalletAddress, // feeRecipient
+    totalFees                // Fee amount
+  );
+  
   // Update DB
   listing.status = 'sold';
   nft.ownerId = userId;
+  await listing.save();
+  await nft.save();
 }
 ```
 
 **Coût Gas :**
 - **Seller list :** **$0** (DB uniquement)
-- **Buyer achète :** **$0** (sponsorisé)
-- **CyLimit :** ~$0.003
+- **Buyer approve USDC :** **$0** (sponsorisé par CDP Paymaster)
+- **CyLimit finalizeSwap :** **~$0.0078** (195,000 gas)
 
 ### Cas 2 : Offres 1-to-1 (Architecture Unifiée)
 
@@ -1935,40 +1977,21 @@ async acceptOffer(offerId: string, targetId: string) {
   // Batch atomique (USDC + NFTs)
   const calls = [];
   
-  // Transfer offeredUSDC (escrowed) → Target
-  if (offer.offeredUSDC > 0) {
-    calls.push({
-      to: MARKETPLACE,
-      data: 'transferEscrowedUSDC(initiator, target, amount)'
-    });
-  }
+  // Backend appelle finalizeSwap (atomique)
+  const result = await this.adminBackendClient.finalizeSwap(
+    offer.offerId,              // offerId (escrow existe)
+    offer.initiatorId.walletAddress,  // userA
+    offer.targetId.walletAddress,     // userB
+    offer.offeredNFTs.map(n => n.tokenId.toString()), // tokenIdsFromA
+    offer.requestedNFTs.map(n => n.tokenId.toString()), // tokenIdsFromB
+    offer.offeredUSDC,           // usdcAmount (net pour target)
+    '',                          // feeRecipient (P2P = pas de fees)
+    0                            // feeAmount (P2P = pas de fees)
+  );
   
-  // Transfer requestedUSDC : Target → Initiator
-  if (offer.requestedUSDC > 0) {
-    calls.push({
-      to: USDC,
-      data: 'transferFrom(target, initiator, amount)'
-    });
-  }
-  
-  // Transfer offered NFTs → Target
-  for (const tokenId of offer.offeredNFTs) {
-    calls.push({
-      to: NFT,
-      data: 'transferFrom(initiator, target, tokenId)'
-    });
-  }
-  
-  // Transfer requested NFTs → Initiator
-  for (const tokenId of offer.requestedNFTs) {
-    calls.push({
-      to: NFT,
-      data: 'transferFrom(target, initiator, tokenId)'
-    });
-  }
-  
-  // Execute batch atomique (sponsorisé)
-  await sendUserOperation(target.baseWalletAddress, calls, PAYMASTER_URL);
+  // Update DB
+  offer.status = 'accepted';
+  await offer.save();
 }
 ```
 
@@ -2072,8 +2095,17 @@ if (lockResult.modifiedCount === 0) {
 }
 
 try {
-  // Appeler smart contract
-  await marketplaceContract.transferEscrowedUSDCFromOffer(offerId, acceptor);
+  // Appeler smart contract finalizeSwap
+  const result = await this.adminBackendClient.finalizeSwap(
+    offerId,                     // offerId (escrow existe)
+    offer.initiatorId.walletAddress,  // userA (buyer)
+    acceptor.walletAddress,      // userB (seller qui accepte)
+    [],                          // tokenIdsFromA (buyer ne donne rien)
+    [matchingNFT.tokenId.toString()], // tokenIdsFromB (NFT vendu)
+    offer.offeredUSDC,           // usdcAmount (net pour seller)
+    '',                          // feeRecipient (Collection Offer = pas de fees)
+    0                            // feeAmount (Collection Offer = pas de fees)
+  );
   
   // Succès → Marquer accepted
   await this.collectionOfferModel.updateOne(
@@ -2152,7 +2184,7 @@ TOTAL SPONSORISÉ : ~$3-5/mois 🎉
 - ✅ **Ownable** : Seul Master Wallet peut modifier
 - ✅ **Burn sécurisé** : Nécessite approval explicite par NFT
 
-**CyLimitMarketplace_v2 :**
+**CyLimitMarketplace_v7 :**
 - ✅ **ReentrancyGuard** : Protection réentrance
 - ✅ **onlyOwner** : release/transfer USDC admin uniquement
 - ✅ **Balance checks** : Vérifications escrow
@@ -2446,9 +2478,9 @@ NFT_V2_CONTRACT :
   ✅ safeTransferFrom(address,address,uint256)
 
 MARKETPLACE_CONTRACT :
-  ✅ escrowUSDC(uint256)
-  ✅ buyNFT(uint256,address)
-  ✅ buyMultipleNFTs(uint256[],address[])
+  ✅ escrowUSDCForOffer(bytes32,address,uint256)
+  ✅ finalizeSwap(bytes32,address,address,uint256[],uint256[],uint256,address,uint256)
+  ✅ releaseUSDCFromOffer(bytes32)
 
 USDC_CONTRACT :
   ✅ transfer(address,uint256)
@@ -2473,7 +2505,7 @@ Limits :
 
 ### Smart Contracts
 - [ ] Déployer CyLimitNFT_v2_FIXED sur Base (avec auth whitelist)
-- [ ] Déployer CyLimitMarketplace_v2_Base
+- [ ] Déployer CyLimitMarketplace_v7 sur Base
 - [ ] Whitelist Marketplace dans NFT immédiatement
 - [ ] Vérifier contrats sur Basescan
 - [ ] Tester fonctions escrow
@@ -2559,12 +2591,15 @@ User A vend NFT #123 à User B via Marketplace :
 1. User A fait setApprovalForAll(Marketplace, true) ✅
    → Marketplace peut transférer les NFTs de User A
 
-2. User B achète via batch :
-   → Call 1: Transfer USDC → User A
-   → Call 2: Transfer fees → CyLimit
-   → Call 3: marketplaceContract.buyNFT(123, userA.address)
+2. User B approve USDC au marketplace
+   → approve(marketplace, totalWithFees)
 
-3. Dans buyNFT() :
+3. Backend appelle finalizeSwap() :
+   → transferFrom(buyer → seller, netAmount)
+   → transferFrom(buyer → masterWallet, fees)
+   → transferFrom(seller → buyer, tokenId)
+   
+   Dans transferFrom(seller → buyer) :
    nftContract.transferFrom(UserA, UserB, 123)
    
 4. Dans _update() :
@@ -3435,6 +3470,15 @@ useEffect(() => {
 
 ## 📝 HISTORIQUE DES VERSIONS
 
+### Version 2.4 (26 Novembre 2025)
+- ✅ **Architecture Finale Documentée** : `finalizeSwap` (Backend-controlled) retenue
+- ✅ **Analyse Coûts Gas Complète** : Détail ligne par ligne pour chaque cas d'usage
+- ✅ **Coûts Réels** : $0.0078 (achat simple), $0.0087 (swap NFT), $0.0107 (swap complexe)
+- ✅ **Option 3 Étudiée** : Escrow NFT analysée et rejetée (2× plus cher)
+- ✅ **Clarification Sponsorship USDC** : Coinbase sponsorise transferts directs SDK uniquement, pas smart contracts
+- ✅ **Optimisations Futures** : Batch achats multiples identifié (~20% économies)
+- ✅ **Décision Argumentée** : Garder architecture actuelle (simplicité + coût optimal)
+
 ### Version 2.3 (19 Novembre 2025 - Après-midi)
 - ✅ **Bug Critique Résolu** : Hook CDP `useSendUserOperation` retournait `status='success'` + `transactionHash` AVANT confirmation blockchain
 - ✅ **Cause racine** : Le `transactionHash` est retourné dès que UserOp est **soumise au bundler**, pas quand elle est **confirmée on-chain**
@@ -3452,7 +3496,9 @@ useEffect(() => {
 - ✅ **Script whitelist** : Correction `false` → `true` dans `1-whitelist-marketplace-v2.cjs`
 
 ### Version 2.1 (9 Novembre 2025)
-- ✅ **Smart Contract v5** : Ajout fonction `finalizeOffer()` atomique
+- ✅ **Smart Contract v7** : Fonction unifiée `finalizeSwap()` remplace `finalizeOffer()` et `buyMultipleNFTs()`
+- ✅ **Sécurité renforcée** : Suppression `buyMultipleNFTs()` (faille sécurité)
+- ✅ **Gestion fees atomique** : Net + fees transférés ensemble dans `finalizeSwap()`
 - ✅ **Tests Buy Offers validés** : Flow complet Step 1-6 opérationnel
 - ✅ **MongoDB schema** : Corrections `initiatorId/targetId` (ObjectId), ajout `txHashEscrow`
 - ✅ **Sécurité renforcée** : Vérification escrow on-chain avant finalisation
@@ -3467,6 +3513,6 @@ useEffect(() => {
 ---
 
 **Maintenu par :** Équipe CyLimit  
-**Date :** 19 Novembre 2025  
-**Version :** 2.2 - Correctifs Critiques Contrat NFT + Migration Sécurisée
+**Date :** 26 Novembre 2025  
+**Version :** 2.4 - Architecture Finale `finalizeSwap` + Analyse Coûts Gas
 

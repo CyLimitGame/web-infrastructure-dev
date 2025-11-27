@@ -16,11 +16,12 @@
 
 FROM nginx:alpine
 
-# Copier la page HTML vers le dossier nginx
-COPY maintenance/index.html /usr/share/nginx/html/index.html
+# Copier la page HTML et le logo vers le dossier nginx
+COPY index.html /usr/share/nginx/html/index.html
+COPY cylimit-white.png /usr/share/nginx/html/cylimit-white.png
 
 # Copier configuration nginx (optionnel, si besoin de custom)
-# COPY maintenance/nginx.conf /etc/nginx/nginx.conf
+# COPY nginx.conf /etc/nginx/nginx.conf
 
 # Exposer port 80
 EXPOSE 80

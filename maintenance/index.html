@@ -1,110 +1,463 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" id="html-root">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CyLimit - Maintenance en cours</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700;900&display=swap" rel="stylesheet">
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Montserrat', sans-serif;
+            background-color: #0F172A; /* Slate 900 - Dark Theme */
+            color: #F8FAFC;
+            overflow-x: hidden;
+        }
+
+        /* Background Mesh Gradient Animation */
+        .mesh-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                        radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                        radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            opacity: 0.6;
+        }
+
+        /* 3D Card Animation */
+        .card-container {
+            perspective: 1000px;
+            width: 300px;
+            height: 420px;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .card-front {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            padding: 20px;
+            overflow: hidden;
         }
-        
-        .container {
-            background: white;
-            padding: 60px 40px;
-            border-radius: 20px;
-            text-align: center;
-            max-width: 600px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            animation: fadeIn 0.5s ease-in;
+
+        /* Holographic/Shine Effect */
+        .card-front::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.1),
+                transparent
+            );
+            transform: skewX(-25deg);
+            animation: shine 3s infinite;
         }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
+
+        @keyframes shine {
+            0% { left: -150%; }
+            50% { left: 150%; }
+            100% { left: 150%; }
         }
-        
-        .icon {
-            font-size: 80px;
-            margin-bottom: 20px;
-            animation: pulse 2s ease-in-out infinite;
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotateY(0deg); }
+            50% { transform: translateY(-20px) rotateY(5deg); }
+            100% { transform: translateY(0px) rotateY(0deg); }
         }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+
+        /* Fading Text Animation */
+        .fade-text {
+            animation: fadeInOut 6s infinite;
         }
-        
-        h1 {
-            color: #667eea;
-            font-size: 32px;
-            margin-bottom: 20px;
-            font-weight: 700;
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; transform: translateY(5px); }
+            10%, 90% { opacity: 1; transform: translateY(0); }
         }
-        
-        p {
-            color: #666;
-            font-size: 18px;
-            line-height: 1.6;
-            margin-bottom: 15px;
+
+        .cyclist-silhouette {
+            opacity: 0.8;
+            filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.3));
         }
-        
-        .subtitle {
-            color: #999;
-            font-size: 14px;
-            margin-top: 30px;
+
+        .loader-wheel {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #38BDF8; /* Sky Blue */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
         }
-        
-        .logo {
-            margin-top: 20px;
-            color: #667eea;
-            font-weight: 700;
-            font-size: 24px;
-            letter-spacing: 1px;
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-        
-        @media (max-width: 600px) {
-            .container {
-                padding: 40px 20px;
-            }
-            
-            h1 {
-                font-size: 24px;
-            }
-            
-            p {
-                font-size: 16px;
-            }
-            
-            .icon {
-                font-size: 60px;
-            }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #38BDF8 0%, #3B82F6 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+        }
+
+        /* Typography Utilities */
+        .text-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-image: linear-gradient(to right, #38BDF8, #818cf8);
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="icon">🔧</div>
-        <h1>Maintenance en cours</h1>
-        <p>CyLimit est temporairement indisponible pour maintenance.</p>
-        <p>Nous mettons à jour notre plateforme pour vous offrir une meilleure expérience.</p>
-        <p><strong>Nous serons de retour très bientôt !</strong></p>
-        <p class="subtitle">Merci pour votre patience</p>
-        <div class="logo">CYLIMIT</div>
+<body class="flex items-center justify-center min-h-screen relative">
+
+    <!-- Mesh Background -->
+    <div class="mesh-bg"></div>
+
+    <!-- Content Container -->
+    <div class="container mx-auto px-4 flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-24 z-10">
+        
+        <!-- Left Side: 3D Card Animation -->
+        <div class="card-container hidden md:block">
+            <div class="card-inner">
+                <div class="card-front p-6">
+                    <!-- Top Badge -->
+                    <div class="absolute top-4 right-4 bg-blue-500/20 text-blue-300 text-xs font-bold px-2 py-1 rounded border border-blue-500/30">
+                        OFFICIAL NFT
+                    </div>
+                    
+                    <!-- Center Visual (Silhouette or Icon) -->
+                    <div class="flex-1 flex items-center justify-center w-full relative">
+                        <!-- Simple SVG graphic representing a cyclist/wheel concept -->
+                        <svg class="w-48 h-48 text-slate-600 cyclist-silhouette" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M15.5 5.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM2 12h3.6l2.7-4.4 1.4 1.6-2.1 3.5H10l1.6 2.4h4.8l1.1-2.1-1.6-2.7 2.5-1.4 2.4 4.1a1 1 0 0 1-.9 1.5H12.7l-1.3-2H8.2l-2 3.2H1.8a.8.8 0 0 1 0-1.6h.2zM17.5 12a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm0 5.5a2 2 0 1 1 0-4 2 2 0 0 1 0 4zM6.5 12a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm0 5.5a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/>
+                        </svg>
+                        <!-- Overlay text on card -->
+                        <div class="absolute bottom-20 w-full text-center">
+                            <p class="text-3xl font-black text-white tracking-tighter">MAINTENANCE</p>
+                            <p class="text-sm text-blue-400 font-medium">SPECIAL EDITION</p>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Stats Mockup -->
+                    <div class="w-full grid grid-cols-3 gap-2 text-center border-t border-slate-700 pt-4 mt-2">
+                        <div>
+                            <p class="text-[10px] text-slate-400 uppercase">Vitesse</p>
+                            <p class="font-bold text-white">99</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-400 uppercase">Status</p>
+                            <p class="font-bold text-yellow-400">PAUSE</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-400 uppercase">Retour</p>
+                            <p class="font-bold text-green-400">100%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Text Content -->
+        <div class="max-w-xl text-center lg:text-left relative">
+            <!-- Logo -->
+            <div class="mb-6 flex items-center justify-center lg:justify-start gap-3">
+                <img src="cylimit-white.png" alt="CyLimit Logo" class="h-10 w-auto" />
+            </div>
+            
+            <!-- Language Selector -->
+            <div class="mb-6 flex items-center justify-center lg:justify-start gap-2">
+                <button onclick="setLanguage('fr')" id="lang-fr" class="px-3 py-1 rounded-full text-xs font-bold transition-all bg-blue-500 text-white">
+                    🇫🇷 FR
+                </button>
+                <button onclick="setLanguage('en')" id="lang-en" class="px-3 py-1 rounded-full text-xs font-bold transition-all bg-slate-700 text-slate-400 hover:bg-slate-600">
+                    🇬🇧 EN
+                </button>
+            </div>
+
+            <h2 class="text-4xl md:text-5xl font-black mb-6 leading-tight">
+                <span data-i18n="title1">Le peloton est au</span> <br>
+                <span class="text-gradient" data-i18n="title2">ravitaillement.</span>
+            </h2>
+            
+            <p class="text-slate-400 text-lg mb-8 leading-relaxed" data-i18n="description">
+                Nous effectuons une mise à jour importante sur la ligne d'arrivée pour améliorer votre expérience 
+                <strong class="text-white">Fantasy</strong> et sécuriser vos <strong class="text-white">cartes NFT</strong>.
+            </p>
+
+            <!-- Status Indicator with Dynamic Text -->
+            <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 mb-6 flex items-center gap-4 max-w-md mx-auto lg:mx-0">
+                <div class="loader-wheel flex-shrink-0"></div>
+                <div class="text-left w-full">
+                    <p class="text-sm font-bold text-white mb-1" data-i18n="updating">Mise à jour en cours...</p>
+                    <p id="loading-message" class="text-xs text-slate-400 italic transition-opacity duration-500">
+                        Nous regonflons les pneus...
+                    </p>
+                </div>
+            </div>
+
+            <!-- Fun Facts / Radio Course Section -->
+            <div class="mb-8 p-4 bg-blue-900/10 border border-blue-500/10 rounded-lg backdrop-blur-sm relative overflow-hidden">
+                <!-- Decorative corner -->
+                <div class="absolute top-0 right-0 w-8 h-8 bg-gradient-to-bl from-blue-500/20 to-transparent"></div>
+                
+                <div class="flex items-start gap-3">
+                    <div class="bg-blue-500/20 p-2 rounded-full">
+                        <i class="fas fa-headset text-blue-400 text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-[10px] font-bold text-blue-300 uppercase tracking-widest mb-1" data-i18n="radio">Radio Course</h3>
+                        <p id="fun-fact" class="text-sm text-slate-300 min-h-[40px] lg:min-h-[30px]">
+                            <!-- JS will inject text here -->
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Social / Contact -->
+            <div class="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
+                <a href="#" class="btn-primary text-white px-8 py-3 rounded-full font-bold text-sm uppercase tracking-wider shadow-lg flex items-center gap-2">
+                    <i class="fas fa-sync-alt"></i>
+                    <span data-i18n="refresh">Réactualiser</span>
+                </a>
+                <div class="flex gap-4 text-slate-400">
+                    <a href="https://discord.com/invite/5nTzbYx6qw" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors"><i class="fab fa-discord text-xl"></i></a>
+                    <a href="https://x.com/cylimit_game" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors"><i class="fab fa-twitter text-xl"></i></a>
+                    <a href="https://www.instagram.com/cylimit_game/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors"><i class="fab fa-instagram text-xl"></i></a>
+                </div>
+            </div>
+
+            <p class="mt-12 text-xs text-slate-500">
+                &copy; 2025 CyLimit. The Fantasy Cycling Game.
+            </p>
+        </div>
     </div>
+
+    <!-- Mobile Card Background -->
+    <div class="md:hidden fixed -z-10 bottom-0 left-0 w-full opacity-10 pointer-events-none">
+         <svg class="w-full h-64 text-slate-600" viewBox="0 0 24 24" fill="currentColor">
+             <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM19 9h-4l-1.4-2.4c-.4-.7-1.2-1.1-2-1.1h-3c-.8 0-1.6.4-2 1.1L4.5 9H2v2h3.5l1.8-3h2.1l-2.6 4.5c-.3.6-.3 1.3 0 1.9l2 3.6H6v2h4l2.4-4.2 1.9-3.3H17v5h2V9z"/>
+         </svg>
+    </div>
+
+    <script>
+        // --- Translations Object ---
+        const translations = {
+            fr: {
+                title1: "Le peloton est au",
+                title2: "ravitaillement.",
+                description: 'Nous effectuons une mise à jour importante sur la ligne d\'arrivée pour améliorer votre expérience <strong class="text-white">Fantasy</strong> et sécuriser vos <strong class="text-white">cartes NFT</strong>.',
+                updating: "Mise à jour en cours...",
+                radio: "Radio Course",
+                refresh: "Réactualiser",
+                statusMessages: [
+                    "Application de la crème chamois sur les serveurs...",
+                    "Négociation avec l'UCI pour la hauteur des chaussettes...",
+                    "Recherche du bidon perdu dans la vallée...",
+                    "Calcul du pourcentage de la pente à 18%...",
+                    "Attente de la photo-finish...",
+                    "Gonflage des boyaux à 8 bars...",
+                    "Vérification des oreillettes...",
+                    "Réglage du dérailleur arrière...",
+                    "Analyse de la photo finish..."
+                ],
+                funFacts: [
+                    "En 1904, les coureurs du Tour ont pris le train. Notre site, lui, charge plus vite qu'une Micheline.",
+                    "Le saviez-vous ? Eddy Merckx a gagné 525 courses. Nos développeurs ont corrigé autant de bugs aujourd'hui.",
+                    "Info : Tadej a encore attaqué à 80km de l'arrivée. Nos serveurs tentent de le rattraper.",
+                    "Rappel : Il est interdit de jeter ses bidons (et ses mots de passe) dans la nature.",
+                    "Flash : Wout van Aert demande si notre site est aussi polyvalent que lui.",
+                    "Histoire : Le premier Maillot Jaune a été remis en 1919. Le vôtre vous attend dès le retour du site.",
+                    "Statistique : Un sprinter génère 1500 Watts. Notre équipe technique tourne à la caféine pure.",
+                    "Conseil : Si ça dure trop longtemps, c'est sûrement un coup de bordure.",
+                    "Vocabulaire : Ici, personne n'est en 'chasse-patate', on travaille dur pour revenir dans le peloton.",
+                    "Nutrition : Nos serveurs ont eu une petite fringale. On leur donne un gel énergétique et ça repart.",
+                    "Stratégie : On est actuellement dans le Gruppetto, mais on rentrera dans les délais, promis.",
+                    "Météo : Il pleut des octets, mais attention aux pavés glissants sur la page d'accueil.",
+                    "Matériel : On vérifie que la chaîne (blockchain) est bien graissée.",
+                    "Lanterne Rouge : On ne finira pas dernier du classement général de la maintenance !",
+                    "Montagne : C'est un col Hors Catégorie, mais on a le petit braquet pour monter souple.",
+                    "Sprint : On prépare le train pour emmener le site vers la victoire.",
+                    "Directeur Sportif : 'Allez les gars, on ne se retourne pas, on code à bloc jusqu'à la ligne !'",
+                    "Musette : Attention au ravitaillement, ne faites pas tomber votre connexion."
+                ]
+            },
+            en: {
+                title1: "The peloton is at",
+                title2: "the feed zone.",
+                description: 'We are performing a major update on the finish line to improve your <strong class="text-white">Fantasy</strong> experience and secure your <strong class="text-white">NFT cards</strong>.',
+                updating: "Update in progress...",
+                radio: "Race Radio",
+                refresh: "Refresh",
+                statusMessages: [
+                    "Applying chamois cream to servers...",
+                    "Negotiating with UCI about sock height...",
+                    "Looking for the lost bidon in the valley...",
+                    "Calculating 18% gradient percentage...",
+                    "Waiting for photo finish...",
+                    "Inflating tubulars to 8 bars...",
+                    "Checking race radios...",
+                    "Adjusting rear derailleur...",
+                    "Analyzing photo finish..."
+                ],
+                funFacts: [
+                    "In 1904, Tour riders took the train. Our site loads faster than a Micheline.",
+                    "Did you know? Eddy Merckx won 525 races. Our developers fixed as many bugs today.",
+                    "Info: Tadej attacked again 80km from the finish. Our servers are trying to catch up.",
+                    "Reminder: It's forbidden to throw your bidons (and passwords) in nature.",
+                    "Flash: Wout van Aert asks if our site is as versatile as he is.",
+                    "History: The first Yellow Jersey was awarded in 1919. Yours awaits when the site returns.",
+                    "Stats: A sprinter generates 1500 Watts. Our tech team runs on pure caffeine.",
+                    "Tip: If it takes too long, it's probably a crosswind split.",
+                    "Vocabulary: Here, nobody is in 'no man's land', we're working hard to get back to the peloton.",
+                    "Nutrition: Our servers had a bonk. We give them an energy gel and they're back.",
+                    "Strategy: We're currently in the Gruppetto, but we'll make it within the time limit, promise.",
+                    "Weather: It's raining bytes, but watch out for slippery cobbles on the homepage.",
+                    "Equipment: We're checking that the chain (blockchain) is well lubricated.",
+                    "Lanterne Rouge: We won't finish last in the maintenance GC!",
+                    "Mountains: It's an HC climb, but we have the small chainring to spin smoothly.",
+                    "Sprint: We're setting up the train to lead the site to victory.",
+                    "DS: 'Come on guys, don't look back, code all out to the line!'",
+                    "Musette: Watch out at the feed zone, don't drop your connection."
+                ]
+            }
+        };
+
+        // Get current language from localStorage or default to 'fr'
+        let currentLang = localStorage.getItem('cylimit-maintenance-lang') || 'fr';
+
+        // Variables globales
+        let statusMessages = [];
+        let funFacts = [];
+        let msgIndex = 0;
+        let factIndex = 0;
+
+        // Fonction pour mélanger les tableaux (Algorithme de Fisher-Yates)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Update status message (smaller text near loader)
+        const updateStatus = () => {
+            const el = document.getElementById('loading-message');
+            if (!el || statusMessages.length === 0) return;
+            el.style.opacity = 0;
+            setTimeout(() => {
+                el.innerText = statusMessages[msgIndex];
+                el.style.opacity = 1;
+                msgIndex = (msgIndex + 1) % statusMessages.length;
+            }, 500);
+        };
+
+        // Update Fun Fact (Radio Course)
+        const updateFact = () => {
+            const el = document.getElementById('fun-fact');
+            if (!el || funFacts.length === 0) return;
+            // Simple fade effect
+            el.style.opacity = 0;
+            setTimeout(() => {
+                el.innerHTML = `"${funFacts[factIndex]}"`;
+                el.style.opacity = 1;
+                factIndex = (factIndex + 1) % funFacts.length;
+            }, 500);
+        };
+
+        // Function to set language
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('cylimit-maintenance-lang', lang);
+            document.getElementById('html-root').setAttribute('lang', lang);
+            
+            // Update button states
+            const frBtn = document.getElementById('lang-fr');
+            const enBtn = document.getElementById('lang-en');
+            
+            if (frBtn) {
+                frBtn.className = lang === 'fr' 
+                    ? 'px-3 py-1 rounded-full text-xs font-bold transition-all bg-blue-500 text-white'
+                    : 'px-3 py-1 rounded-full text-xs font-bold transition-all bg-slate-700 text-slate-400 hover:bg-slate-600';
+            }
+            if (enBtn) {
+                enBtn.className = lang === 'en' 
+                    ? 'px-3 py-1 rounded-full text-xs font-bold transition-all bg-blue-500 text-white'
+                    : 'px-3 py-1 rounded-full text-xs font-bold transition-all bg-slate-700 text-slate-400 hover:bg-slate-600';
+            }
+            
+            // Update all i18n elements
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang][key]) {
+                    el.innerHTML = translations[lang][key];
+                }
+            });
+            
+            // Reinitialize messages with new language
+            statusMessages = [...translations[lang].statusMessages];
+            funFacts = [...translations[lang].funFacts];
+            shuffleArray(statusMessages);
+            shuffleArray(funFacts);
+            msgIndex = 0;
+            factIndex = 0;
+            updateStatus();
+            updateFact();
+        }
+
+        // Initialize on DOM ready
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set language
+            setLanguage(currentLang);
+
+            // Button refresh handler
+            const refreshBtn = document.querySelector('.btn-primary');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    location.reload();
+                });
+            }
+
+            // Set intervals (Status every 3s, Facts every 7s)
+            setInterval(updateStatus, 3000);
+            setInterval(updateFact, 7000);
+        });
+
+    </script>
 </body>
 </html>
-
-
