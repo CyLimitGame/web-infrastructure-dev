@@ -12,7 +12,7 @@
 
 **We use Coinbase OnRamp to let users easily purchase USDC**, which they use to buy NFT cards on our marketplace. All NFTs and USDC are stored in user-controlled Embedded Wallets (Coinbase CDP).
 
-**Current Status:** Integrated in staging environment with temporary limits (25 transactions, $5 max per transaction). Ready for production approval.
+**Current Status:** **LIVE IN PRODUCTION** on frontend-staging.cylimit.com (Base Mainnet). Ready for production approval.
 
 ---
 
@@ -25,17 +25,17 @@
    ↓
 2. User creates Embedded Wallet (Coinbase CDP)
    ↓
-3. User clicks "Add Funds" → OnRamp opens ✅
+3. User clicks "Add Funds" → OnRamp opens ✅ (LIVE IN PRODUCTION)
    ↓
-4. User buys USDC with credit card (via OnRamp)
+4. User buys USDC (via OnRamp) (LIVE IN PRODUCTION)
    ↓
-5. USDC arrives in user's Embedded Wallet
+5. USDC arrives in user's Embedded Wallet (Base Mainnet) (LIVE IN PRODUCTION)
    ↓
 6. User spends USDC on NFT cards in our marketplace
    ↓
 7. User plays fantasy cycling games and earns more USDC
    ↓
-8. User can buy more cards → returns to step 3 (OnRamp) ✅
+8. User can buy more cards → returns to step 3 (OnRamp) ✅ (LIVE IN PRODUCTION on Base Mainnet)
 ```
 
 **OnRamp is the primary entry point for users to fund their wallets and participate in the CyLimit ecosystem.**
@@ -62,7 +62,7 @@ STEP 2: Frontend → Backend API call
 ├─ Body: {
 │    destinationAddress: "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
 │    cryptoCurrency: "USDC",
-│    network: "base-sepolia"
+│    network: "base" // ✅ EN PRODUCTION : Base Mainnet
 │  }
 └─ Authentication: User JWT token (validates identity)
 
@@ -92,7 +92,7 @@ STEP 5: Backend calls Coinbase OnRamp API
 ├─ Body: {
 │    destination_address: "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
 │    crypto_currency: "USDC",
-│    network: "base-sepolia"
+│    network: "base" // ✅ PRODUCTION: Base Mainnet
 │  }
 └─ Response: { session_token: "xyz123abc..." }
 
@@ -112,7 +112,7 @@ STEP 8: Coinbase Pay handles payment
 ├─ User enters amount (e.g., "50 EUR")
 ├─ User enters credit card details (or Apple Pay, Google Pay)
 ├─ Coinbase processes payment (KYC/AML checks)
-├─ Coinbase mints USDC on Base Sepolia
+├─ Coinbase mints USDC on Base Mainnet ✅ PRODUCTION
 ├─ Coinbase sends USDC to destination_address (user's wallet)
 └─ User receives on-chain notification
 
@@ -161,7 +161,7 @@ export class OnrampService {
   private readonly networkId: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.networkId = this.configService.get('blockchain.networkId') || 'base-sepolia';
+    this.networkId = this.configService.get('blockchain.networkId') || 'base'; // ✅ PRODUCTION: 'base' for Base Mainnet
     this.initializeApiKeys();
   }
 
@@ -201,7 +201,7 @@ export class OnrampService {
    * 
    * @param destinationAddress - User's Embedded Wallet address
    * @param cryptoCurrency - Crypto to buy (default: USDC)
-   * @param network - Blockchain network (default: base-sepolia)
+   * @param network - Blockchain network (default: base) ✅ PRODUCTION
    * @param clientIp - Client IP address (optional, for security validation)
    * @returns OnRamp URL ready for user redirection
    */
@@ -361,7 +361,7 @@ export class OnrampController {
    * {
    *   "destinationAddress": "0x...",
    *   "cryptoCurrency": "USDC",
-   *   "network": "base-sepolia"
+   *   "network": "base" // ✅ PRODUCTION: Base Mainnet
    * }
    * 
    * Response:
@@ -374,7 +374,7 @@ export class OnrampController {
     return this.onrampService.generateSimpleOnrampLink(
       body.destinationAddress,
       body.cryptoCurrency || 'USDC',
-      body.network || 'base-sepolia',
+      body.network || 'base', // ✅ PRODUCTION: Base Mainnet
       req.ip // Pass client IP for Coinbase security validation
     );
   }
@@ -632,14 +632,14 @@ export const WalletModal = () => {
 
 ```bash
 # Coinbase CDP API Keys
-CDP_API_KEY_ID=organizations/YOUR_ORG/apiKeys/YOUR_KEY_ID
-CDP_API_KEY_SECRET_PATH=projects/YOUR_PROJECT/secrets/cdp-api-key-secret/versions/latest
+CDP_API_KEY_ID=
+CDP_API_KEY_SECRET_PATH=
 
-# Blockchain Configuration
-NETWORK_ID=base-sepolia
-CHAIN_ID=84532
-RPC_URL=https://sepolia.base.org
-USDC_CONTRACT_ADDRESS=0x036CbD53842c5426634e7929541eC2318f3dCF7e
+# Blockchain Configuration (✅ PRODUCTION: Base Mainnet)
+NETWORK_ID=base
+CHAIN_ID=8453
+RPC_URL=https://mainnet.base.org
+USDC_CONTRACT_ADDRESS=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
 
 # API URLs
 API_URL=https://api-staging.cylimit.com
@@ -655,9 +655,9 @@ NEXT_PUBLIC_API_URL=https://api-staging.cylimit.com
 # Coinbase CDP Project ID (for Embedded Wallets)
 NEXT_PUBLIC_CDP_PROJECT_ID=your_project_id_here
 
-# Network
-NEXT_PUBLIC_NETWORK=base-sepolia
-NEXT_PUBLIC_CHAIN_ID=84532
+# Network (✅ PRODUCTION: Base Mainnet)
+NEXT_PUBLIC_NETWORK=base
+NEXT_PUBLIC_CHAIN_ID=8453
 ```
 
 ### Package Dependencies
@@ -667,10 +667,11 @@ NEXT_PUBLIC_CHAIN_ID=84532
 ```json
 {
   "dependencies": {
-    "@coinbase/cdp-sdk": "^2.0.0",
-    "@google-cloud/secret-manager": "^5.0.0",
-    "axios": "^1.6.0",
-    "ethers": "^5.7.2"
+    "@coinbase/cdp-sdk": "^1.38.4",
+    "@google-cloud/secret-manager": "^6.1.1",
+    "axios": "^1.12.2",
+    "ethers": "^5.7.1",
+    "viem": "^2.38.0"
   }
 }
 ```
@@ -680,9 +681,10 @@ NEXT_PUBLIC_CHAIN_ID=84532
 ```json
 {
   "dependencies": {
-    "@coinbase/cdp-react": "^2.0.0",
-    "@coinbase/cdp-hooks": "^2.0.0",
-    "axios": "^1.6.0",
+    "@coinbase/cdp-react": "^0.0.62",
+    "@coinbase/cdp-hooks": "^0.0.62",
+    "@coinbase/cdp-core": "^0.0.62",
+    "axios": "^0.26.0",
     "viem": "^2.0.0"
   }
 }
@@ -697,19 +699,6 @@ NEXT_PUBLIC_CHAIN_ID=84532
 Coinbase OnRamp **automatically detects** user location and displays the appropriate currency based on IP geolocation.
 
 **We do NOT need to maintain country/currency configurations** - Coinbase handles everything automatically.
-
-| Region | Currency | Payment Methods |
-|--------|----------|-----------------|
-| 🇫🇷 France | EUR | Credit Card, Debit Card, Apple Pay, Google Pay |
-| 🇧🇪 Belgium | EUR | Credit Card, Debit Card, Apple Pay |
-| 🇺🇸 USA | USD | Credit Card, Debit Card, ACH, Apple Pay, Google Pay |
-| 🇬🇧 UK | GBP | Credit Card, Debit Card, Apple Pay, Google Pay |
-| 🇨🇦 Canada | CAD | Credit Card, Debit Card, Interac |
-| 🇩🇪 Germany | EUR | Credit Card, Debit Card, Sofort, Apple Pay |
-| 🇪🇸 Spain | EUR | Credit Card, Debit Card, Apple Pay |
-| 🇮🇹 Italy | EUR | Credit Card, Debit Card, Apple Pay |
-| 🇨🇭 Switzerland | CHF | Credit Card, Debit Card |
-| 🇳🇱 Netherlands | EUR | Credit Card, Debit Card, iDEAL, Apple Pay |
 
 **Total:** 100+ countries supported by Coinbase OnRamp
 
@@ -744,19 +733,20 @@ Step 4: Marie redirected to Coinbase Pay
 ├─ New tab opens with Coinbase Pay widget
 ├─ Auto-detected: France → Currency shown in EUR
 ├─ Payment methods available: Visa, Mastercard, Apple Pay
+├─ Network: Base Mainnet ✅ PRODUCTION
 └─ Clean, professional Coinbase UI
 
 Step 5: Marie enters purchase details
 ├─ Amount: 50 EUR
 ├─ Destination (pre-filled): 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb
-├─ Network (pre-selected): Base Sepolia
+├─ Network (pre-selected): Base Mainnet ✅ PRODUCTION
 └─ Asset (pre-selected): USDC
 
 Step 6: Marie completes payment
 ├─ Enters Visa card details
 ├─ Coinbase performs KYC/AML checks (if needed)
 ├─ Payment processed by Coinbase
-├─ Coinbase mints USDC on Base Sepolia
+├─ Coinbase mints USDC on Base Mainnet ✅ PRODUCTION
 └─ USDC sent to Marie's wallet
 
 Step 7: Marie returns to CyLimit
@@ -824,6 +814,7 @@ Scenario: Alex discovers CyLimit via Coinbase blog. Wants to invest $500.
 Step 1: Alex registers and creates wallet
 ├─ Account created in 2 minutes
 ├─ Embedded Wallet: 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063
+├─ Network: Base Mainnet ✅ PRODUCTION
 └─ Balance: 0 USDC
 
 Step 2: Alex clicks "Add Funds"
@@ -922,185 +913,6 @@ async generateSimpleOnrampLink(@Request() req, @Body() body: any) {
 
 ---
 
-## 📈 Current Status & Roadmap
-
-### Current Status (November 2025)
-
-| Component | Status | Details |
-|-----------|--------|---------|
-| **OnRamp Integration** | 🟡 Staging | Fully functional with temporary limits |
-| **Backend API** | ✅ Production-ready | Deployed on Google Cloud Run |
-| **Frontend UI** | ✅ Production-ready | Staging at app.cylimit.com |
-| **Testing** | ✅ Completed | 50+ test transactions successful |
-| **Documentation** | ✅ Complete | This document |
-
-## 📊 Expected OnRamp Usage Metrics
-
-### Projections (Based on Beta Testing)
-
-| Metric | Current (Beta) | Month 1 | Month 3 | Month 6 |
-|--------|----------------|---------|---------|---------|
-| **Active Users** | 50 | 1,000 | 10,000 | 50,000 |
-| **OnRamp Transactions/Month** | 120 | 2,400 | 24,000 | 120,000 |
-| **Avg. Deposit Amount** | $42 | $50 | $75 | $100 |
-| **Total Volume/Month** | $5,040 | $120,000 | $1,800,000 | $12,000,000 |
-| **Conversion Rate** | 85% | 80% | 85% | 90% |
-| **Repeat Usage** | 2.4x/user | 3x/user | 4x/user | 5x/user |
-
-**Key Insights:**
-- 85% of users who start OnRamp complete the transaction
-- Users return to OnRamp 2-4x per month on average
-- Higher-value users ($200+) have 95% conversion rate
-- Peak usage: Friday-Sunday (race weekends)
-
----
-
-## 🎯 Why OnRamp is Critical for CyLimit
-
-### The Problem We Solve
-
-**Without OnRamp:**
-```
-User wants to play CyLimit
-  ↓
-1. Buy crypto on external exchange (Coinbase, Binance, Kraken)
-2. Wait for KYC approval (1-3 days)
-3. Complete verification
-4. Buy USDC with credit card
-5. Withdraw USDC to personal wallet
-6. Pay network fees (gas)
-7. Transfer USDC to CyLimit Embedded Wallet
-8. Pay more gas fees
-9. FINALLY able to use CyLimit
-
-Result: 3-7 days, $20+ in fees, 9+ steps, 70% drop-off rate
-```
-
-**With OnRamp:**
-```
-User wants to play CyLimit
-  ↓
-1. Click "Add Funds"
-2. Enter card details
-3. USDC arrives in wallet
-4. Start playing
-
-Result: 3 minutes, ~2% fees, 4 steps, 85% conversion rate
-```
-
-### Business Impact
-
-| Metric | Without OnRamp | With OnRamp | Improvement |
-|--------|----------------|-------------|-------------|
-| **Time to First Purchase** | 3-7 days | 3 minutes | 98% faster |
-| **Conversion Rate** | 30% | 85% | +183% |
-| **Average Fees Paid** | $20 | $1-2 | 90% lower |
-| **User Drop-off** | 70% | 15% | 79% reduction |
-| **Repeat Purchases** | 1.2x/user | 3.5x/user | +192% |
-
-**OnRamp is essential for CyLimit's user acquisition and retention strategy.**
-
----
-
-## 📞 Next Steps for Coinbase Approval
-
-### What We're Ready to Provide
-
-1. ✅ **Technical Documentation** (this document)
-2. ✅ **Live Staging Environment** (frontend-staging.cylimit.com - available for testing)
-3. ✅ **API Documentation** (Swagger/OpenAPI available on request)
-4. ✅ **Smart Contract Addresses** (Base Sepolia deployed contracts)
-5. ✅ **Security Audit Reports** (available on request)
-6. ✅ **Company Information** (registration, team, business model)
-7. ✅ **User Flow Videos** (screen recordings of complete flows)
-8. ✅ **Test Credentials** (staging accounts for Coinbase team review)
-
-### What We Need from Coinbase
-
-1. 🔓 **Production OnRamp Access** (remove 25 TX / $5 limits)
-2. 📋 **Compliance Requirements** (any additional KYC/AML documentation needed)
-3. 🤝 **Technical Review** (feedback on our integration implementation)
-4. 📈 **Rate Limits** (expected transaction volumes, concurrent users)
-5. 🎯 **Timeline** (estimated approval process duration)
-6. 💬 **Support Channel** (direct contact for production issues)
-
-### Staging Environment Access
-
-**For Coinbase review team:**
-
-- **URL:** https://frontend-staging.cylimit.com
-- **Test Account:** Available on request
-- **OnRamp Flow:** Fully functional with staging limits
-- **Backend API:** https://api-staging.cylimit.com
-- **API Documentation:** Available on request
-
-We can provide:
-- Test user credentials
-- Admin dashboard access
-- Direct access to logs and metrics
-- Screen sharing sessions for walkthrough
-
----
-
-## 📧 Contact Information
-
-**Company:** CyLimit SAS  
-**Website:** https://cylimit.com  
-**Staging App:** https://frontend-staging.cylimit.com  
-**Founded:** 2023  
-**Location:** Paris, France  
-**Legal:** French SAS (Société par Actions Simplifiée)
-
-**Founder & CEO:**  
-Valentin Gosse  
-📧 valentin@cylimit.com  
-🔗 LinkedIn: linkedin.com/in/valentin-gosse
-
-**Technical Contact:**  
-📧 tech@cylimit.com
-
-**Support:**  
-📧 support@cylimit.com  
-💬 Discord: discord.gg/cylimit
-
-**Business Hours:**  
-Monday-Friday: 9:00-18:00 CET  
-Emergency contact: Available 24/7 for production issues
-
----
-
-## 📝 Summary
-
-**CyLimit uses Coinbase OnRamp as the primary funding mechanism for our fantasy cycling platform.**
-
-### Integration Highlights
-
-✅ **Implementation:** CDP SDK v2, Session Token API  
-✅ **Network:** Base Sepolia (staging) → Base Mainnet (production Q1 2026)  
-✅ **Security:** JWT authentication, wallet ownership validation, secure key storage  
-✅ **User Experience:** 3-minute deposit flow, 85% conversion rate  
-✅ **Backend:** Production-ready, deployed on Google Cloud Run  
-✅ **Frontend:** Production-ready, staging at frontend-staging.cylimit.com  
-✅ **Testing:** 50+ successful test transactions completed  
-
-### Why We're Ready for Production
-
-1. **Technical Excellence:** Clean, well-documented integration using latest CDP SDK v2
-2. **Security First:** Multi-layer security with proper authentication and validation
-3. **User-Focused:** Simple, intuitive flow with 85% conversion rate
-4. **Scalable:** Backend architecture ready for 100K+ monthly transactions
-5. **Compliant:** Proper KYC/AML handled by Coinbase, GDPR-compliant infrastructure
-
-### Our Ask
-
-**We request Coinbase's approval to remove OnRamp staging limits and launch in production in January 2026.**
-
-We're excited to partner with Coinbase to bring seamless crypto onboarding to the fantasy sports industry.
-
-Thank you for considering CyLimit's OnRamp integration! 🚀
-
----
-
-*Document Version: 1.0*  
-*Last Updated: November 25, 2025*  
-*Status: Awaiting Coinbase Review*
+*Document Version: 2.0*  
+*Last Updated: November 27, 2025*  
+*Status: Live in Production on Base Mainnet*

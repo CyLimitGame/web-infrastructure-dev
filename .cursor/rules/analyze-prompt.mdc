@@ -1,0 +1,320 @@
+---
+alwaysApply: false
+---
+# 📋 Règle : Analyse du Prompt et Chargement du Contexte
+
+## 🎯 Objectif
+Avant de commencer à travailler sur une demande, **analyser systématiquement les sujets techniques impliqués** et charger le contexte approprié.
+
+## 🔍 Processus d'Analyse
+
+### 1. Identifier les Sujets Techniques
+
+À chaque nouveau prompt de l'utilisateur, **analyser et identifier** quels sujets techniques sont concernés parmi :
+
+#### Sujets Principaux
+- **Wallets Coinbase** (Embedded Wallet, CDP, authentification, balance USDC)
+- **Marketplace** (achat/vente NFT, listings, fees, approval)
+- **Game** (fantasy cyclisme, scoring, teams, races)
+- **NFTs** (minting, transfert, metadata, ownership)
+- **Backend User** (API REST, auth, database)
+- **Backend Admin** (cron jobs, scripts, monitoring)
+- **Frontend** (Next.js, React, hooks, components)
+- **Infrastructure** (AWS, déploiement, configuration)
+- **Tests** (Playwright, E2E, validation)
+- **Autres** (tout autre sujet spécifique)
+
+### 2. Charger le Contexte Approprié
+
+**AVANT de commencer à coder ou répondre**, charger les fichiers de contexte pertinents :
+
+#### Mapping Sujet → Fichier de Contexte
+
+| Sujet | Fichier de Contexte à Charger | Tokens | Coût |
+|-------|-------------------------------|--------|------|
+| **Auth, Login, Signup, OAuth** | `infrastructure/docs/context/CONTEXT_AUTH.md` | ~8,540 | ~$0.025 |
+| **Wallets Coinbase** | `infrastructure/docs/context/CONTEXT_MARKETPLACE-WALLET.md` | ~32,000 | ~$0.096 |
+| **Marketplace** | `infrastructure/docs/context/CONTEXT_MARKETPLACE-WALLET.md` | ~32,000 | ~$0.096 |
+| **Game, Fantasy, Scoring** | `infrastructure/docs/context/CONTEXT_GAME.md` | ~11,700 | ~$0.035 |
+| **NFTs** | `infrastructure/docs/context/CONTEXT_MARKETPLACE-WALLET.md` | ~32,000 | ~$0.096 |
+| **Backend** | `infrastructure/docs/ETAT_PROJET.md` + fichiers techniques spécifiques | ~8,700 | ~$0.026 |
+| **Frontend** | `infrastructure/docs/ETAT_PROJET.md` + fichiers techniques spécifiques | ~8,700 | ~$0.026 |
+| **Tests** | `infrastructure/docs/tests/PLAN_TEST_EMBEDDED_WALLET.md` | ~19,800 | ~$0.059 |
+| **Général** | `infrastructure/docs/ETAT_PROJET.md` (toujours utile) | ~8,700 | ~$0.026 |
+
+### 3. Communiquer l'Analyse
+
+**Dire explicitement à l'utilisateur** :
+```
+"Pour cette tâche, j'identifie les sujets suivants :
+- [Sujet 1] (ex: Wallets Coinbase)
+- [Sujet 2] (ex: Marketplace)
+
+Je vais charger le contexte nécessaire avant de commencer :
+- CONTEXT_MARKETPLACE-WALLET.md (~32k tokens, ~$0.096)
+- ETAT_PROJET.md (~7k tokens, ~$0.021)
+
+Coût total chargement : ~$0.117
+"
+```
+
+**IMPORTANT :**
+- ✅ **TOUJOURS lire les 30 premières lignes** de chaque fichier de contexte AVANT de le charger complètement
+- ✅ Chercher la section "💰 COÛT DE CHARGEMENT" dans les premières lignes
+- ✅ Extraire le coût et le nombre de tokens
+- ✅ Communiquer ces informations à l'utilisateur AVANT le chargement
+- ✅ Si pas de section coût : estimer avec `~12.5 tokens/ligne`
+
+Puis **charger les fichiers** avec `read_file` avant de commencer à travailler.
+
+## ✅ Exemple d'Application
+
+### Prompt Utilisateur
+> "J'ai un bug lors de l'achat d'un NFT sur le marketplace, la balance USDC ne se met pas à jour"
+
+### Analyse (AVANT de répondre)
+```
+🔍 Analyse du prompt :
+Sujets identifiés :
+- Marketplace (achat NFT)
+- Wallets Coinbase (balance USDC)
+- Frontend (mise à jour UI)
+
+Contexte à charger :
+- infrastructure/docs/context/CONTEXT_MARKETPLACE-WALLET.md
+- infrastructure/docs/ETAT_PROJET.md
+
+Vérification des coûts...
+```
+
+### Actions
+1. `read_file` sur `CONTEXT_MARKETPLACE-WALLET.md` (limité aux 30 premières lignes)
+2. Extraire le coût depuis la section "💰 COÛT DE CHARGEMENT"
+3. `read_file` sur `ETAT_PROJET.md` (limité aux 30 premières lignes)
+4. Extraire le coût (ou estimer si absent)
+5. **Communiquer les coûts à l'utilisateur** :
+   ```
+   Je vais charger le contexte nécessaire :
+   - CONTEXT_MARKETPLACE-WALLET.md (~32k tokens, ~$0.096)
+   - ETAT_PROJET.md (~7k tokens, ~$0.021)
+   
+   Coût total chargement : ~$0.117
+   
+   Je charge maintenant les fichiers complets...
+   ```
+6. `read_file` complet sur `CONTEXT_MARKETPLACE-WALLET.md`
+7. `read_file` complet sur `ETAT_PROJET.md`
+8. Analyser le code pertinent
+9. Proposer une solution informée
+
+## 🚫 Ce qu'il NE faut PAS faire
+
+❌ **Commencer à coder immédiatement** sans charger le contexte
+❌ **Deviner** le fonctionnement du système sans lire la doc
+❌ **Ignorer** les fichiers de contexte disponibles
+❌ **Proposer** une solution qui contredit l'architecture documentée
+
+## ✅ Ce qu'il FAUT faire
+
+✅ **Identifier** les sujets techniques dans le prompt
+✅ **Charger** le contexte approprié AVANT de répondre
+✅ **Communiquer** l'analyse à l'utilisateur
+✅ **Baser** la solution sur le contexte réel du projet
+✅ **Mettre à jour** la documentation si changements
+
+## 📝 Template de Réponse
+
+```markdown
+🔍 **Analyse du prompt :**
+
+**Sujets identifiés :**
+- [Sujet 1]
+- [Sujet 2]
+
+**Contexte à charger :**
+- [Fichier 1]
+- [Fichier 2]
+
+Vérification des coûts de chargement...
+
+[Après lecture des 30 premières lignes]
+
+💰 **Coût du chargement de contexte :**
+- [Fichier 1] (~Xk tokens, ~$X.XX)
+- [Fichier 2] (~Yk tokens, ~$Y.YY)
+
+**Coût total : ~$Z.ZZ**
+
+Je charge maintenant le contexte complet...
+
+[Après chargement]
+
+✅ Contexte chargé. Voici ma compréhension du système actuel :
+[Résumé du contexte]
+
+Maintenant je travaille sur votre demande...
+```
+
+## 🎯 Bénéfices
+
+- ✅ **Réponses plus précises** basées sur l'architecture réelle
+- ✅ **Évite les erreurs** dues à une mauvaise compréhension
+- ✅ **Cohérence** avec le code existant
+- ✅ **Gain de temps** en chargeant le bon contexte dès le départ
+- ✅ **Transparence** pour l'utilisateur sur la méthode de travail
+- ✅ **Visibilité sur les coûts** : l'utilisateur sait combien coûte chaque chargement de contexte
+- ✅ **Optimisation budget** : permet de décider si le contexte est vraiment nécessaire
+
+## 📚 Fichiers de Contexte Disponibles
+
+### Contextes Principaux (3 fichiers - 4,213 lignes total)
+
+| Fichier | Sujet | Lignes | Tokens | Coût |
+|---------|-------|--------|--------|------|
+| **CONTEXT_AUTH.md** | Auth, Login, Signup, OAuth, Email, Password | 683 | ~8,540 | ~$0.025 |
+| **CONTEXT_GAME.md** | Fantasy, Équipes, Scoring, Courses, PCS | 938 | ~11,700 | ~$0.035 |
+| **CONTEXT_MARKETPLACE-WALLET.md** | Marketplace, Wallets, NFT, USDC, Contrats | 2,592 | ~32,000 | ~$0.096 |
+
+**Total chargement 3 contextes :** ~52,240 tokens, ~$0.156
+
+### Documents État Projet
+- `infrastructure/docs/ETAT_PROJET.md` - État général (696 lignes, ~8,700 tokens, ~$0.026)
+- `infrastructure/docs/PROCHAINES_ETAPES.md` - Roadmap (565 lignes, ~7,060 tokens, ~$0.021)
+
+### Contextes Tests
+- `infrastructure/docs/tests/PLAN_TEST_EMBEDDED_WALLET.md` - Tests wallet (1,583 lignes, ~19,800 tokens, ~$0.059)
+- `infrastructure/docs/tests/AUTOMATISATION_TESTS_WALLET.md` - Tests E2E (745 lignes, ~9,300 tokens, ~$0.028)
+
+---
+
+**Cette règle s'applique à CHAQUE nouveau prompt utilisateur.**
+
+---
+
+## 📝 APRÈS L'ANALYSE ET LES MODIFICATIONS
+
+### Mise à Jour des Fichiers de Contexte
+
+**À la fin de chaque tâche, évaluer si les fichiers de contexte doivent être mis à jour :**
+
+- ✅ **SI** des changements importants ont été faits sur le système (architecture, flows, nouveaux composants)
+- ✅ **ALORS** mettre à jour le fichier de contexte approprié :
+  - Marketplace/Wallets modifiés → `CONTEXT_MARKETPLACE-WALLET.md`
+  - Game modifié → `CONTEXT_GAME.md`
+  - Nouveau sujet majeur → Créer nouveau `CONTEXT_[SUJET].md`
+
+**⚠️ IMPORTANT : Mettre à jour les compteurs de coût**
+Après modification d'un fichier de contexte :
+1. Compter les nouvelles lignes : `wc -l [fichier]`
+2. Calculer tokens : `lignes × 12.5`
+3. Calculer coût : `(tokens / 1,000,000) × $3`
+4. Mettre à jour la section "💰 COÛT DE CHARGEMENT"
+5. Mettre à jour la date "Dernière mise à jour compteurs"
+
+### ❌ CE QU'IL NE FAUT PAS FAIRE
+
+**NE PAS créer de fichiers MD de résumé/récapitulatif automatiquement :**
+- ❌ Pas de `RECAP_[TACHE].md`
+- ❌ Pas de `RESUME_[MODIFICATION].md`
+- ❌ Pas de `CHANGELOG_[DATE].md`
+- ❌ Pas de documentation automatique des modifications
+
+**À LA PLACE :**
+- ✅ **Mettre à jour `ETAT_PROJET.md`** avec les modifications effectuées
+- ✅ **Mettre à jour `PROCHAINES_ETAPES.md`** avec ce qu'il reste à faire
+- ✅ **Demander à l'utilisateur dans le chat** s'il veut un résumé détaillé documenté ailleurs
+- ✅ Si oui, lui demander **OÙ** mettre ces informations
+- ✅ Ne créer un nouveau fichier **QUE si l'utilisateur le demande explicitement**
+
+### Format des Mises à Jour
+
+#### ETAT_PROJET.md
+**Que mettre :**
+- ✅ Sujet de la modification (ex: "Optimisation Wallet Context")
+- ✅ Fichiers modifiés (liste concise)
+- ✅ Contexte modifié si applicable (ex: "CONTEXT_MARKETPLACE-WALLET.md mis à jour")
+- ✅ Date de la modification
+
+**Que NE PAS mettre :**
+- ❌ Détails techniques ligne par ligne
+- ❌ Code complet des modifications
+- ❌ Explications longues (ça va dans les fichiers de contexte)
+
+**Exemple :**
+```markdown
+- ✅ **NOUVEAU (6 Nov 2025 10h30) :** Optimisation appels API - WalletContext
+  - Problème : 4-5 fetches balance au refresh page
+  - Solution : WalletContext centralisé
+  - Fichiers : src/contexts/WalletContext.tsx, src/hooks/useEmbeddedWallet.ts, src/pages/_app.tsx
+  - Résultat : -75% appels API
+```
+
+#### PROCHAINES_ETAPES.md
+**Que mettre :**
+- ✅ Marquer comme ✅ les tâches terminées
+- ✅ Ajouter nouvelles tâches identifiées
+- ✅ Mettre à jour les priorités si nécessaire
+- ✅ Retirer ou archiver les tâches obsolètes
+
+**Exemple :**
+```markdown
+### Optimisations Frontend
+- ✅ Optimiser appels API wallet (WalletContext)
+- ⏳ Optimiser chargement images NFT
+- ⏳ Implémenter lazy loading composants
+```
+
+### Template de Question à l'Utilisateur
+
+```markdown
+✅ Modifications terminées !
+
+**Changements apportés :**
+- [Fichier 1]
+- [Fichier 2]
+
+**Documentation mise à jour :**
+- ✅ ETAT_PROJET.md (section [X] mise à jour)
+- ✅ PROCHAINES_ETAPES.md (tâches marquées ✅)
+- ✅ [CONTEXT_X.md si applicable]
+
+📊 Souhaitez-vous une documentation plus détaillée de ces modifications ?
+Si oui, indiquez-moi où la mettre (nouveau fichier, section spécifique, etc.)
+```
+
+### Exemple Pratique
+
+```markdown
+❌ MAUVAIS (création automatique de fichier) :
+"J'ai créé RESUME_OPTIMISATION_WALLET.md pour documenter les changements"
+
+✅ BON (mise à jour docs + question) :
+"✅ Optimisation terminée !
+
+Changements apportés :
+- src/contexts/WalletContext.tsx (créé)
+- src/hooks/useEmbeddedWallet.ts (simplifié)
+- src/pages/_app.tsx (ajout Provider)
+
+Documentation mise à jour :
+- ✅ ETAT_PROJET.md (section "Embedded Wallet" mise à jour)
+- ✅ PROCHAINES_ETAPES.md (tâche "Optimiser appels API" marquée ✅)
+
+Souhaitez-vous une documentation plus détaillée de cette optimisation ?
+Si oui, indiquez-moi où la mettre."
+```
+
+### Checklist de Fin de Tâche
+
+Avant de terminer une tâche, vérifier :
+- [ ] Code modifié et testé
+- [ ] `ETAT_PROJET.md` mis à jour (format concis)
+- [ ] `PROCHAINES_ETAPES.md` mis à jour (tâches ✅)
+- [ ] Fichier de contexte mis à jour si nécessaire
+- [ ] Compteurs de coût mis à jour si contexte modifié
+- [ ] Question posée à l'utilisateur pour doc détaillée
+- [ ] **Aucun fichier MD de résumé créé automatiquement**
+
+---
+
+**Cette règle s'applique à CHAQUE nouveau prompt utilisateur.**

@@ -1,17 +1,17 @@
 # 🎯 VISION COMPLÈTE - WALLETS, NFT, MARKETPLACE & FLOWS CYLIMIT
 
-**Date :** 26 Novembre 2025  
-**Version :** 2.4 - Architecture Finale `finalizeSwap` + Analyse Coûts Gas  
+**Date :** 27 Novembre 2025  
+**Version :** 2.5 - Nettoyage Onramp + Documentation Architecture Basic Session  
 **Objectif :** Document de référence unique pour la compréhension complète du système
 
 ---
 
 ## 💰 COÛT DE CHARGEMENT DE CE CONTEXTE
 
-**Taille du fichier :** 3518 lignes  
-**Nombre de tokens :** ~43,975 tokens  
-**Coût par chargement :** ~$0.132 (à $3/M tokens input)  
-**Budget token restant après chargement :** ~956,025 tokens (sur 1M)
+**Taille du fichier :** 3740 lignes  
+**Nombre de tokens :** ~46,750 tokens  
+**Coût par chargement :** ~$0.140 (à $3/M tokens input)  
+**Budget token restant après chargement :** ~953,250 tokens (sur 1M)
 
 **⚠️ RÈGLE IMPORTANTE :**
 - ✅ **TOUJOURS mettre à jour ces chiffres** après chaque modification de ce fichier
@@ -20,7 +20,7 @@
 - ✅ Recalculer le coût : (nombre_tokens / 1,000,000) × $3
 - ✅ Mettre à jour la date de dernière modification
 
-**Dernière mise à jour compteurs :** 26 Novembre 2025 - 18h00
+**Dernière mise à jour compteurs :** 27 Novembre 2025 - 23h00
 
 ---
 
@@ -2245,6 +2245,221 @@ if (usdcBalance < requiredUSDC * 1e6) {
 
 ## 🔗 INTÉGRATION COINBASE
 
+### 📊 Coinbase Onramp - Architecture Actuelle (Basic Session)
+
+**Date implémentation :** Novembre 2025  
+**Approche choisie :** Basic Session (auto-détection pays/devise)  
+**Statut :** ✅ PRODUCTION
+
+#### Principe
+
+L'intégration Coinbase Onramp permet aux users d'acheter des USDC avec leur carte bancaire pour alimenter leur Embedded Wallet.
+
+**Architecture retenue : Basic Session**
+- ✅ Coinbase auto-détecte le pays via l'IP du client
+- ✅ Coinbase auto-détecte la devise disponible
+- ✅ Coinbase auto-détecte les méthodes de paiement
+- ✅ Le plus simple à implémenter
+- ✅ Moins de code à maintenir
+- ✅ Aucun paramètre country à gérer
+
+#### Flow User Complet
+
+```
+User clique "Déposer" dans WalletAuthModal
+         ↓
+Frontend : fetchSimpleOnrampLink()
+         ↓
+Backend : POST /onramp/simple-link
+         ↓
+Backend : Génère Session Token (POST /onramp/v1/token)
+         ↓
+Backend : Retourne { onrampUrl }
+         ↓
+Frontend : Ouvre popup Coinbase Pay
+         ↓
+Coinbase auto-détecte :
+  - Pays (via IP)
+  - Devise (EUR, USD, etc.)
+  - Méthodes de paiement (CB, Apple Pay, etc.)
+         ↓
+User complète paiement sur Coinbase
+         ↓
+USDC arrive dans Embedded Wallet
+```
+
+#### Code Frontend (Actuel)
+
+```typescript
+// src/apis/onramp.ts
+
+/**
+ * 🆕 NOUVEAU : Génère un lien Onramp simplifié (recommandé)
+ * Coinbase auto-détecte le pays, la devise et les méthodes de paiement
+ */
+export const fetchSimpleOnrampLink = async (params: {
+  destinationAddress: string;
+  cryptoCurrency?: string;
+  network?: string;
+}): Promise<{ onrampUrl: string }> => {
+  const token = localStorage.getItem('TOKEN');
+  if (!token) {
+    throw new Error('Non authentifié');
+  }
+
+  const response = await axios.post(
+    `${API_URL}/onramp/simple-link`,
+    {
+      destinationAddress: params.destinationAddress,
+      cryptoCurrency: params.cryptoCurrency || 'USDC',
+      network: params.network,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  return response.data;
+};
+```
+
+#### Code Backend (Actuel)
+
+```typescript
+// src/modules/wallet/services/onramp.service.ts
+
+public async generateSimpleOnrampLink(
+  destinationAddress: string,
+  cryptoCurrency: string = 'USDC',
+  network?: string,
+  clientIp?: string,
+): Promise<{ onrampUrl: string }> {
+  // 1. Générer Session Token
+  const sessionToken = await this.generateSessionToken(
+    destinationAddress,
+    targetNetwork,
+    cryptoCurrency,
+    clientIp,
+  );
+
+  // 2. Construire l'URL Coinbase Pay
+  const onrampUrl = `https://pay.coinbase.com/buy/select-asset?sessionToken=${sessionToken}`;
+  
+  return { onrampUrl };
+}
+
+  // 2. Créer URL Coinbase Pay (auto-détection)
+  const onrampUrl = `https://pay.coinbase.com/buy?sessionToken=${sessionToken}`;
+
+  return { onrampUrl };
+}
+```
+
+#### Fonctions Supprimées (27 Nov 2025)
+
+Les fonctions suivantes ont été **supprimées** car non utilisées dans l'architecture Basic Session :
+
+```typescript
+// ❌ SUPPRIMÉ : useUserCountry() (hook)
+// → Détection pays via IP pour passer au backend
+// → Pas nécessaire : Coinbase détecte automatiquement
+
+// ❌ SUPPRIMÉ : fetchBuyOptions()
+// → Récupère options disponibles par pays
+// → Pas nécessaire : Coinbase gère automatiquement
+
+// ❌ SUPPRIMÉ : fetchBuyQuote()
+// → Crée quote avec frais détaillés
+// → Pas nécessaire : Coinbase affiche les frais directement
+```
+
+**Pourquoi supprimées ?**
+- Architecture Basic Session = auto-détection complète par Coinbase
+- Moins de code = moins de bugs
+- Pas de gestion country = moins de complexité
+- Frontend ne passe AUCUN paramètre pays
+
+#### Comparaison des Approches
+
+| Approche | Country requis ? | Implémentation | Utilisé CyLimit |
+|----------|------------------|----------------|-----------------|
+| **Basic Session** | ❌ Non (auto-détecté) | Simple | ✅ **OUI** |
+| **One-Click Onramp** | ✅ Oui (pré-remplir montant) | Moyenne | ❌ Non |
+| **One-Click + Quote** | ✅ Oui (afficher frais avant) | Complexe | ❌ Non |
+
+#### Avantages Architecture Actuelle
+
+✅ **Simplicité maximale** : 1 endpoint, 1 fonction  
+✅ **Maintenance minimale** : Pas de gestion country  
+✅ **Robustesse** : Coinbase gère edge cases  
+✅ **UX fluide** : User voit directement les options disponibles  
+✅ **Conformité** : Session Token obligatoire depuis 07/2025 ✅
+
+#### Si Évolution Future Nécessaire
+
+Pour implémenter One-Click Onramp avec Quote (afficher frais avant redirection) :
+
+```typescript
+// 1. Récupérer pays (depuis profil user ou IP)
+const userCountry = user.country || detectCountryFromIP();
+
+// 2. Appeler Buy Options (cache backend)
+const options = await getBuyOptions(userCountry);
+
+// 3. Créer quote avec montant EUR
+const quote = await createBuyQuote({
+  country: userCountry,
+  paymentAmount: '100',
+  paymentCurrency: 'EUR',
+  purchaseCurrency: 'USDC',
+  purchaseNetwork: 'polygon-mainnet',
+  destinationAddress: walletAddress,
+});
+
+// 4. Afficher montant USDC + frais
+console.log(`Vous recevrez : ${quote.purchaseAmount.value} USDC`);
+console.log(`Frais : ${quote.coinbaseFee.value} EUR`);
+
+// 5. Générer URL one-click avec quoteId
+const onrampUrl = quote.onrampUrl; // URL pré-remplie
+```
+
+**Mais pour l'instant, Basic Session suffit largement !** ✅
+
+// 3. Créer Quote avec montant
+const quote = await createBuyQuote({
+  country: userCountry,
+  paymentAmount: '100',
+  paymentCurrency: 'EUR',
+  // ...
+});
+
+// 4. Afficher dans UI
+console.log(`Total: ${quote.paymentTotal}`);
+console.log(`Frais: ${quote.fees}`);
+console.log(`USDC reçu: ${quote.purchaseAmount}`);
+
+// 5. Rediriger vers one-click URL
+window.open(quote.onrampUrl);
+```
+
+**Backend déjà prêt** :
+- ✅ `getBuyOptions(country)` avec cache
+- ✅ `createBuyQuote(params)` avec auto-détection payment method
+- ✅ Endpoints exposés (`/onramp/buy-options`, `/onramp/buy-quote`)
+
+**Frontend à créer** :
+- [ ] Ajouter champ montant dans WalletAuthModal
+- [ ] Appeler `fetchBuyQuote()` (à recréer si nécessaire)
+- [ ] Afficher frais estimés avant redirection
+
+**Décision : Garder Basic Session pour l'instant** (simplicité > features avancées)
+
+---
+
 ### ⚠️ RÈGLE CRITIQUE : Toujours Vérifier avec MCP Coinbase Developer
 
 **Avant d'implémenter TOUTE fonction CDP (Coinbase Developer Platform) :**
@@ -3470,6 +3685,13 @@ useEffect(() => {
 
 ## 📝 HISTORIQUE DES VERSIONS
 
+### Version 2.5 (27 Novembre 2025)
+- ✅ **Nettoyage Onramp** : Suppression fonctions non utilisées (`useUserCountry`, `fetchBuyOptions`, `fetchBuyQuote`)
+- ✅ **Documentation Onramp** : Ajout section complète sur architecture Basic Session
+- ✅ **Simplification** : Confirmation architecture auto-détection Coinbase (pas de gestion country)
+- ✅ **Clarification** : Explication pourquoi fonctions avancées non nécessaires actuellement
+- ✅ **Préparation future** : Documentation pour éventuelle évolution One-Click avec Quote
+
 ### Version 2.4 (26 Novembre 2025)
 - ✅ **Architecture Finale Documentée** : `finalizeSwap` (Backend-controlled) retenue
 - ✅ **Analyse Coûts Gas Complète** : Détail ligne par ligne pour chaque cas d'usage
@@ -3513,6 +3735,6 @@ useEffect(() => {
 ---
 
 **Maintenu par :** Équipe CyLimit  
-**Date :** 26 Novembre 2025  
-**Version :** 2.4 - Architecture Finale `finalizeSwap` + Analyse Coûts Gas
+**Date :** 27 Novembre 2025  
+**Version :** 2.5 - Nettoyage Onramp + Documentation Architecture Basic Session
 
