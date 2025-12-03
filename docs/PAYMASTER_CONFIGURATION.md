@@ -284,6 +284,23 @@ PAYMASTER_URL_TESTNET=https://api.developer.coinbase.com/rpc/v1/base-sepolia/YOU
 
 **Solution :** Augmenter la limite "Per UserOperation limit" dans Gas Policy.
 
+### Erreur : "request denied - max address transaction sponsorship count reached" (Code -32002)
+
+**Cause :** L'adresse a atteint la limite maximale de transactions sponsorisées configurée dans la politique "Per User Limit" du Paymaster.
+
+**Solution :** 
+1. Aller sur **https://portal.cdp.coinbase.com/**
+2. Sélectionner votre projet
+3. Naviguer vers **Onchain Tools > Paymaster**
+4. Aller dans l'onglet **Gas Policy**
+5. Dans la section **Per User Limit**, augmenter :
+   - Le nombre maximum de UserOperations par utilisateur
+   - OU le montant maximum en USD par utilisateur
+6. Ajuster le cycle de reset (daily, weekly, monthly) si nécessaire
+7. Sauvegarder les modifications
+
+**Note :** Les changements peuvent prendre quelques minutes pour être effectifs.
+
 ---
 
 ## 📚 Ressources
